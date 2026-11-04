@@ -1,0 +1,128 @@
+# OpsBridge geliştirme rehberi
+
+Araştırma ve düzenleme: **2026-11-04 — Europe/Istanbul**.
+
+Kullanıcının açık tercihi: **az satır yerine anlaşılır kod**. Dosya adı, bulunduğu paket ve çağrı akışı üzerinden bir işin nerede yapıldığını takip edebilmek temel ölçüt. Bu rehberdeki teknoloji seçimleri bu projenin mevcut kapsamına aittir; her uygulama için tek doğru teknoloji listesi olduğu iddia edilmez.
+
+## Spring Boot: katmanların sorumluluğu
+
+```text
+com.yhcanbay.opsbridge
+├── config/                   Spring Security yapılandırması
+├── controller/               HTTP endpoint'leri
+├── dto/
+│   ├── request/              Gelen veri ve validation
+│   └── response/             API'nin döndürdüğü sözleşme
+├── entity/                   JPA/veritabanı modeli
+├── enums/                    Capability, IntegrationState
+├── exception/                Uygulama hataları ve HTTP hata çevirisi
+├── mapper/                   DTO–entity ve adapter–response dönüşümü
+├── repository/               Veritabanı sorguları
+├── service/                  Kullanım senaryoları ve transaction
+└── integration/
+    ├── adapter/              Jenkins/runtime/health sözleşmeleri
+    │   └── stub/             Henüz dış istek yapmayan uygulamalar
+    └── model/                Adapter'ın iç sonuç modeli
+```
+
+Örneğin proje oluşturma akışı:
+
+1. `ProjectController`, `ProjectRequest` verisini doğrulatır ve servisi çağırır.
+2. `ProjectService`, kullanım senaryosunun transaction'ını yönetir.
+3. `ProjectMapper`, gelen veriyi `ProjectProfile` entity'sine çevirir.
+4. `ProjectRepository`, entity'yi kaydeder.
+5. Mapper, kaydedilmiş veriyi `ProjectResponse` olarak döndürür; controller 201 ve Location header'ını üretir.
+
+Entity, HTTP isteğini veya DTO'yu bilmez. Service HTTP 404 üretmez; `ProjectNotFoundException` fırlatır, `ApiExceptionHandler` bunu HTTP hata yanıtına çevirir. Auth DTO'ları ve enum'lar da kendi dosyalarındadır. Bu katman düzeni kullanıcının istediği proje standardıdır. Spring Boot belirli bir paket şemasını zorunlu tutmaz; ana uygulama sınıfının diğer paketlerin üzerinde bulunmasını önerir. [Spring Boot 4.0 kod düzeni](https://docs.spring.io/spring-boot/4.0/reference/using/structuring-your-code.html).
+
+### DTO, mapper ve entity tercihleri
+
+| Teknoloji / yaklaşım | OpsBridge'deki seçim ve gerekçe |
+|---|---|
+| Request/response DTO | Gelen ve dönen sözleşmeler ayrı; entity doğrudan API'ye açılmaz |
+| Java record | DTO için açık, değişmez veri taşıyıcısı; JPA entity için normal sınıf |
+| Mapper | `ProjectMapper` ve `IntegrationMapper` içinde açık dönüşüm; alanların nereye gittiği izlenebilir |
+| MapStruct | Araştırıldı; çok sayıda tekrar eden dönüşüm oluştuğunda değerlendirilecek. Şu an iki küçük mapper için annotation processor eklenmedi |
+| Constructor injection | Bağımlılıklar constructor'da görünür; field injection kullanılmaz |
+| Service interface | Adapter'larda gerçek bir değiştirilebilirlik sınırı var. Tek uygulamalı her servis için ayrıca interface/impl çifti üretilmedi |
+| Lombok | Eklenmedi; entity getter/setter ve yaşam döngüsü davranışı açıkça okunabilir |
+
+MapStruct, derleme sırasında mapper uygulaması üretebilir; Spring component modeli ve eşlenmeyen alanlar için derleme kontrolü sunar. Manuel mapper seçimi bu küçük model için proje kararıdır. [MapStruct kararlı sürüm rehberi](https://mapstruct.org/documentation/stable/reference/html/).
+
+### Session ve JWT
+
+Mevcut ürün aynı origin üzerinden çalışan tek bir yönetim paneli ve basit ADMIN hesabı kullanıyor. **Session cookie + CSRF** korunuyor: oturum sunucuda sonlandırılabilir; tarayıcı parola veya bearer token saklamaz. Axios yazma isteğinden önce CSRF token'ını alır, girişten sonra yeni token ister. [Spring Security 7.0 CSRF](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
+
+JWT, bağımsız mobil/API istemcisi veya bir kimlik sağlayıcıyla bearer token doğrulama ihtiyacında değerlendirilecek. Bu durumda issuer, audience, imza anahtarları, süre, token yenileme ve çıkış/iptal davranışı birlikte tasarlanmalı. Spring Security Resource Server, JWT doğrulamak için desteklenen bir yoldur; kendi başına kullanıcı girişi ve token üretim sistemi değildir. Bu değerlendirme sonucunda mevcut görevde JWT'ye geçilmedi. [Spring Security 7.0 JWT](https://docs.spring.io/spring-security/reference/7.0/servlet/oauth2/resource-server/jwt.html).
+
+## React: routing, durum ve HTTP erişimi
+
+```text
+frontend/src/
+├── app/                       Route tanımları ve uygulama bileşimi
+├── api/                       Axios instance, CSRF ve hata normalleştirme
+├── components/
+│   ├── auth/                  Giriş formu ve route koruması
+│   ├── common/                Ortak küçük UI parçaları
+│   └── projects/              Profil formu, liste, detay ve bağlantı kartları
+├── constants/                 Capability etiketleri ve başlangıç form modeli
+├── context/                   AuthContext / AuthProvider
+├── hooks/                     useAuth, useProjects, useIntegrations
+├── layouts/                   Panel çerçevesi ve navigasyon
+├── pages/                     Login, projeler ve bulunamadı ekranı
+└── services/                  Auth ve proje API işlemleri
+```
+
+| Teknoloji | Kullanım |
+|---|---|
+| React Router DOM 7.18.5 | `/login`, `/projects`, `/projects/:projectId`, bulunamadı sayfası, korumalı layout |
+| Axios 1.21.0 | Ortak base URL, 10 saniye timeout, CSRF request interceptor, API hata çevirisi ve 401 oturum olayı |
+| Context | Yalnızca oturumun ortak durumu; kullanıcı ve giriş/çıkış işlemleri |
+| Custom hooks | Proje yükleme/mutation ve entegrasyon yükleme; iptal edilen isteklerin yönetimi |
+| Prettier | Tekrarlanabilir JSX/JS/CSS biçimi; `npm run format` ve `npm run format:check` |
+| Vitest + Testing Library + jsdom | HTTP istemci sözleşmesi ve React yönlendirme/oturum davranışı testleri |
+
+Router'ın **declarative** modu bu Vite SPA için seçildi. Nested route ve `Outlet` layout'u paylaşır. Proje seçimi URL'ye yazar; bir linkten gelen proje kimliği bulunamadığında başka projeyi sessizce göstermez. Girişten sonra kullanıcının istediği adrese dönülür. Bu kurgu, router'ın URL eşleştirme ve iç içe sayfa özelliklerini kullanır. [React Router routing](https://reactrouter.com/start/declarative/routing), [mod seçimi](https://reactrouter.com/start/modes).
+
+Component'ler Axios yapılandırması taşımaz; `projectService` ve `authService` çağırır. Axios instance ortak HTTP davranışını, interceptor'lar CSRF ve hata akışını toplar. Mutasyonlar başarısız olduğunda otomatik tekrarlanmaz; sunucu işlemi tamamlamış ama yanıt ulaşmamış olabilir. [Axios instance](https://axios-http.com/docs/instance), [interceptors](https://axios-http.com/docs/interceptors).
+
+Hook'lar tek bir anlaşılır davranış etrafında ayrıldı. Büyük bir App component'i içine bütün durumlar ve işlemler konmadı. Route değişirken/yeni istek başlarken eski isteği iptal etmek için AbortController kullanılır. İlk oturum kontrolünde ağ hatası olması, giriş yapılmamış olmakla aynı sayılmaz; kullanıcıya tekrar deneme sunulur. [React custom hooks](https://react.dev/learn/reusing-logic-with-custom-hooks), [Axios cancellation](https://axios-http.com/docs/cancellation).
+
+Redux/Zustand, TanStack Query veya React Hook Form/Zod şu an eklenmedi. Paylaşılan durum, cache veya karmaşık form ihtiyacı doğduğunda bunlar ayrıca değerlendirilebilir. Bu araçların yokluğu, router/servis/HTTP sınırlarının belirsiz olması için gerekçe değildir.
+
+## PostgreSQL, JPA ve Flyway
+
+- Şema Flyway migration'larıyla yönetilir; Hibernate yalnızca `validate` yapar. Uygulanmış V1/V2 değişmedi; integrity kuralları yeni **V3** ile eklenir. Flyway sürümlü migration'ları sıralı uygular ve checksum izler. [Flyway versioned migrations](https://documentation.red-gate.com/flyway/flyway-concepts/migrations/versioned-migrations).
+- API validation'a ek olarak DB, boş proje adı/ortamı ve tanımsız capability değerlerini reddeder. Foreign key, capability'nin var olan projeye ait olmasını sağlar. İsim+ortam için yeni bir uniqueness kuralı uydurulmadı. [PostgreSQL 16 constraints](https://www.postgresql.org/docs/16/ddl-constraints.html).
+- Capability değerleri metin olarak saklanır; enum ordinal sırasına bağlı veri tutulmaz.
+- Capability koleksiyonu varsayılan LAZY'dir. İlgili repository sorgularında EntityGraph ile istenir ve DTO dönüşümü service transaction'ı içinde yapılır. Her sorguya otomatik EAGER yük bindirilmez. [Spring Data JPA entity graphs](https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html#jpa.entity-graph), [transaction sınırı](https://docs.spring.io/spring-data/jpa/reference/jpa/transactions.html).
+- Güncelleme yanıtından önce flush yapılması, JPA callback'inin `updatedAt` değerini yenilemesini sağlar.
+- Mevcut primary key indekslerine ek, sorgu ihtiyacı gösterilmeden indeks eklenmedi. Yeni filtreleme ve veri hacminde sorgu planı incelenerek karar verilir. [PostgreSQL 16 indexes](https://www.postgresql.org/docs/16/indexes-intro.html).
+
+## Biçim ve doğrulama
+
+Java kodu açık import'larla, dört boşluk girintiyle biçimlendirilir. Bu düzenlemede ana kaynaklar ve testler `google-java-format 2.0.0 --aosp` ile biçimlendirildi. Frontend'de Prettier kullanılır; `.editorconfig` editör temelini belirtir. [Java formatter kaynağı](https://github.com/google/google-java-format), [Prettier options](https://prettier.io/docs/options).
+
+Kontroller:
+
+```powershell
+# backend/ içinde
+mvn verify
+
+# frontend/ içinde
+npm run format:check
+npm test
+npm run build
+```
+
+Backend paketleri taşındığında ilk kontrolde `mvn clean verify` kullanılır; eski sınıfların `target/` içinde kalması önlenir. 11 backend testi API/oturum ve doğrudan DB integrity davranışlarını, 7 frontend testi router/oturum ve Axios protokolünü kapsar. jsdom testi gerçek tarayıcı görsel kontrolünün yerine geçmez. Son çalıştırmalar ve doğrulama sınırları [.wiki/STATUS.md](../.wiki/STATUS.md) içinde tutulur.
+
+## Üç geliştirme becerisi
+
+Kaynakları depodaki [skills](../skills/) altında; kurulu kopyaları `C:\Users\yhcan\.codex\skills` içinde:
+
+- [backend-developer](../skills/backend-developer/SKILL.md): Spring katmanları, DTO/mapper ve güvenlik seçimi.
+- [frontend-developer](../skills/frontend-developer/SKILL.md): React routing, servisler, state ve erişilebilir component'ler.
+- [database-developer](../skills/database-developer/SKILL.md): PostgreSQL, JPA, migration ve veri bütünlüğü.
+
+Her beceri kendi teknik kaynaklarını içerir. Ortak amaç okunabilirlik ve doğru sorumluluk sınırlarıdır. Kurulu ve depodaki kopyalar otomatik senkron değildir; güncellemelerde birlikte ele alınmalıdır.

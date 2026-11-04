@@ -1,0 +1,6 @@
+interface:
+  display_name: "Frontend Developer"
+  short_description: "Readable React routing, services and components"
+  default_prompt: "Use $frontend-developer to implement or refactor this React application with clear routing, HTTP services and components."
+policy:
+  allow_implicit_invocation: true

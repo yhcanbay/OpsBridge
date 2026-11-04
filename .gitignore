@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.cache/
+**/target/
+**/node_modules/
+**/dist/
+**/.vite/
+*.log
+.idea/
+.vscode/
+*.iml
+.DS_Store

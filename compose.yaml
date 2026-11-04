@@ -1,0 +1,43 @@
+name: opsbridge
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-opsbridge}
+      POSTGRES_USER: ${POSTGRES_USER:-opsbridge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - opsbridge-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  backend:
+    build: ./backend
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-opsbridge}
+      POSTGRES_USER: ${POSTGRES_USER:-opsbridge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      OPSBRIDGE_ADMIN_USERNAME: ${OPSBRIDGE_ADMIN_USERNAME:-admin}
+      OPSBRIDGE_ADMIN_PASSWORD: ${OPSBRIDGE_ADMIN_PASSWORD:?Set OPSBRIDGE_ADMIN_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:8082:8082"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:5174:80"
+    depends_on:
+      - backend
+
+volumes:
+  opsbridge-db:
