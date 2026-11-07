@@ -1,0 +1,6 @@
+interface:
+  display_name: "Database Developer"
+  short_description: "Readable PostgreSQL, JPA and Flyway changes"
+  default_prompt: "Use $database-developer to implement or review this schema, query or migration with explicit integrity and verification."
+policy:
+  allow_implicit_invocation: true

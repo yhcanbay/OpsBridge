@@ -1,0 +1,6 @@
+interface:
+  display_name: "Backend Developer"
+  short_description: "Readable Spring APIs, DTOs, mapping and security"
+  default_prompt: "Use $backend-developer to implement or refactor this Spring Boot API with clear layers and readable code."
+policy:
+  allow_implicit_invocation: true
