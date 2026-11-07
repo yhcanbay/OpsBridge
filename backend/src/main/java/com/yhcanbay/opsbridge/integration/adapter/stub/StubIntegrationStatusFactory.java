@@ -1,13 +1,13 @@
 package com.yhcanbay.opsbridge.integration.adapter.stub;
 
+import java.util.Set;
+
+import org.springframework.stereotype.Component;
+
 import com.yhcanbay.opsbridge.entity.ProjectProfile;
 import com.yhcanbay.opsbridge.enums.Capability;
 import com.yhcanbay.opsbridge.enums.IntegrationState;
 import com.yhcanbay.opsbridge.integration.model.IntegrationResult;
-
-import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 @Component
 public class StubIntegrationStatusFactory {
@@ -15,24 +15,35 @@ public class StubIntegrationStatusFactory {
     public IntegrationResult create(
             ProjectProfile project, String name, Set<Capability> supportedCapabilities) {
         if (!project.isEnabled()) {
-            return new IntegrationResult(name, IntegrationState.DISABLED, "Proje pasif.", null);
+            return IntegrationResult.builder()
+                    .integration(name)
+                    .state(IntegrationState.DISABLED)
+                    .message("Proje pasif.")
+                    .build();
         }
 
-        boolean supported =
-                supportedCapabilities.stream().anyMatch(project.getCapabilities()::contains);
+        boolean supported = false;
+        Set<Capability> projectCapabilities = project.getCapabilities();
+
+        for (Capability capability : supportedCapabilities) {
+            if (projectCapabilities.contains(capability)) {
+                supported = true;
+                break;
+            }
+        }
 
         if (!supported) {
-            return new IntegrationResult(
-                    name,
-                    IntegrationState.NOT_SUPPORTED,
-                    "Profilde bu yetenek tanımlı değil.",
-                    null);
+            return IntegrationResult.builder()
+                    .integration(name)
+                    .state(IntegrationState.NOT_SUPPORTED)
+                    .message("Profilde bu yetenek tanımlı değil.")
+                    .build();
         }
 
-        return new IntegrationResult(
-                name,
-                IntegrationState.NOT_CONNECTED,
-                "Henüz bağlanmadı; bu sürüm dış sisteme istek göndermez.",
-                null);
+        return IntegrationResult.builder()
+                .integration(name)
+                .state(IntegrationState.NOT_CONNECTED)
+                .message("Henüz bağlanmadı; bu sürüm dış sisteme istek göndermez.")
+                .build();
     }
 }

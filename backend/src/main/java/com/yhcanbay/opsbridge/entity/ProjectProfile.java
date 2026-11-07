@@ -1,5 +1,10 @@
 package com.yhcanbay.opsbridge.entity;
 
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import com.yhcanbay.opsbridge.enums.Capability;
 
 import jakarta.persistence.CollectionTable;
@@ -16,17 +21,21 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
-import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "project_profiles")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ProjectProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Setter(AccessLevel.NONE)
     private UUID id;
 
     @Column(nullable = false, length = 80)
@@ -60,12 +69,12 @@ public class ProjectProfile {
     private boolean enabled;
 
     @Column(nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
     private Instant createdAt;
 
     @Column(nullable = false)
+    @Setter(AccessLevel.NONE)
     private Instant updatedAt;
-
-    public ProjectProfile() {}
 
     @PrePersist
     private void beforeInsert() {
@@ -78,66 +87,6 @@ public class ProjectProfile {
         updatedAt = Instant.now();
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRepositoryUrl() {
-        return repositoryUrl;
-    }
-
-    public void setRepositoryUrl(String repositoryUrl) {
-        this.repositoryUrl = repositoryUrl;
-    }
-
-    public String getEnvironment() {
-        return environment;
-    }
-
-    public void setEnvironment(String environment) {
-        this.environment = environment;
-    }
-
-    public String getJenkinsBaseUrlRef() {
-        return jenkinsBaseUrlRef;
-    }
-
-    public void setJenkinsBaseUrlRef(String jenkinsBaseUrlRef) {
-        this.jenkinsBaseUrlRef = jenkinsBaseUrlRef;
-    }
-
-    public String getJenkinsJobPath() {
-        return jenkinsJobPath;
-    }
-
-    public void setJenkinsJobPath(String jenkinsJobPath) {
-        this.jenkinsJobPath = jenkinsJobPath;
-    }
-
-    public String getContainerLabelSelector() {
-        return containerLabelSelector;
-    }
-
-    public void setContainerLabelSelector(String containerLabelSelector) {
-        this.containerLabelSelector = containerLabelSelector;
-    }
-
-    public String getHealthUrl() {
-        return healthUrl;
-    }
-
-    public void setHealthUrl(String healthUrl) {
-        this.healthUrl = healthUrl;
-    }
-
     public Set<Capability> getCapabilities() {
         return Set.copyOf(capabilities);
     }
@@ -145,21 +94,5 @@ public class ProjectProfile {
     public void setCapabilities(Set<Capability> capabilities) {
         this.capabilities.clear();
         this.capabilities.addAll(capabilities);
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
     }
 }

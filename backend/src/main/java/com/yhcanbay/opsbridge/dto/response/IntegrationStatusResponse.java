@@ -1,11 +1,25 @@
 package com.yhcanbay.opsbridge.dto.response;
 
-import com.yhcanbay.opsbridge.enums.IntegrationState;
-
 import java.time.Instant;
 
-public record IntegrationStatusResponse(
-        String integration,
-        IntegrationState state,
-        String message,
-        Instant lastSuccessfulFetchAt) {}
+import com.yhcanbay.opsbridge.enums.IntegrationState;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class IntegrationStatusResponse {
+
+    private String integration;
+
+    private IntegrationState state;
+
+    private String message;
+
+    private Instant lastSuccessfulFetchAt;
+}

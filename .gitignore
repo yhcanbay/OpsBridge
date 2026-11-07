@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 .cache/
+/.reference-code/
 **/target/
 **/node_modules/
 **/dist/

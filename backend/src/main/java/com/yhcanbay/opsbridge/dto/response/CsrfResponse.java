@@ -1,3 +1,17 @@
 package com.yhcanbay.opsbridge.dto.response;
 
-public record CsrfResponse(String headerName, String token) {}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class CsrfResponse {
+
+    private String headerName;
+
+    private String token;
+}

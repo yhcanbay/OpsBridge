@@ -1,5 +1,8 @@
 package com.yhcanbay.opsbridge.dto.request;
 
+import java.net.URI;
+import java.util.Set;
+
 import com.yhcanbay.opsbridge.enums.Capability;
 
 import jakarta.validation.constraints.AssertTrue;
@@ -8,19 +11,46 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-import java.net.URI;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record ProjectRequest(
-        @NotBlank @Size(max = 80) String name,
-        @NotBlank @Size(max = 500) String repositoryUrl,
-        @NotBlank @Pattern(regexp = "[a-z][a-z0-9_-]{0,29}") String environment,
-        @Size(max = 100) String jenkinsBaseUrlRef,
-        @Size(max = 200) String jenkinsJobPath,
-        @Size(max = 250) String containerLabelSelector,
-        @Size(max = 500) String healthUrl,
-        @NotNull Set<@NotNull Capability> capabilities,
-        @NotNull Boolean enabled) {
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProjectRequest {
+
+    @NotBlank
+    @Size(max = 80)
+    private String name;
+
+    @NotBlank
+    @Size(max = 500)
+    private String repositoryUrl;
+
+    @NotBlank
+    @Pattern(regexp = "[a-z][a-z0-9_-]{0,29}")
+    private String environment;
+
+    @Size(max = 100)
+    private String jenkinsBaseUrlRef;
+
+    @Size(max = 200)
+    private String jenkinsJobPath;
+
+    @Size(max = 250)
+    private String containerLabelSelector;
+
+    @Size(max = 500)
+    private String healthUrl;
+
+    @NotNull
+    private Set<@NotNull Capability> capabilities;
+
+    @NotNull
+    private Boolean enabled;
 
     @AssertTrue(message = "Repository adresi, kimlik bilgisi içermeyen bir HTTP(S) URL olmalıdır.")
     public boolean isRepositoryUrlValid() {

@@ -1,46 +1,47 @@
 package com.yhcanbay.opsbridge.mapper;
 
+import org.springframework.stereotype.Component;
+
 import com.yhcanbay.opsbridge.dto.request.ProjectRequest;
 import com.yhcanbay.opsbridge.dto.response.ProjectResponse;
 import com.yhcanbay.opsbridge.entity.ProjectProfile;
 
-import org.springframework.stereotype.Component;
-
 @Component
 public class ProjectMapper {
 
-    public ProjectProfile toEntity(ProjectRequest request) {
+    public ProjectProfile createEntity(ProjectRequest request) {
         ProjectProfile project = new ProjectProfile();
         updateEntity(request, project);
         return project;
     }
 
     public void updateEntity(ProjectRequest request, ProjectProfile project) {
-        project.setName(request.name().trim());
-        project.setRepositoryUrl(request.repositoryUrl().trim());
-        project.setEnvironment(request.environment().trim());
-        project.setJenkinsBaseUrlRef(normalizeOptionalText(request.jenkinsBaseUrlRef()));
-        project.setJenkinsJobPath(normalizeOptionalText(request.jenkinsJobPath()));
-        project.setContainerLabelSelector(normalizeOptionalText(request.containerLabelSelector()));
-        project.setHealthUrl(normalizeOptionalText(request.healthUrl()));
-        project.setCapabilities(request.capabilities());
-        project.setEnabled(request.enabled());
+        project.setName(request.getName().trim());
+        project.setRepositoryUrl(request.getRepositoryUrl().trim());
+        project.setEnvironment(request.getEnvironment().trim());
+        project.setJenkinsBaseUrlRef(normalizeOptionalText(request.getJenkinsBaseUrlRef()));
+        project.setJenkinsJobPath(normalizeOptionalText(request.getJenkinsJobPath()));
+        project.setContainerLabelSelector(normalizeOptionalText(request.getContainerLabelSelector()));
+        project.setHealthUrl(normalizeOptionalText(request.getHealthUrl()));
+        project.setCapabilities(request.getCapabilities());
+        project.setEnabled(request.getEnabled());
     }
 
-    public ProjectResponse toResponse(ProjectProfile project) {
-        return new ProjectResponse(
-                project.getId(),
-                project.getName(),
-                project.getRepositoryUrl(),
-                project.getEnvironment(),
-                project.getJenkinsBaseUrlRef(),
-                project.getJenkinsJobPath(),
-                project.getContainerLabelSelector(),
-                project.getHealthUrl(),
-                project.getCapabilities(),
-                project.isEnabled(),
-                project.getCreatedAt(),
-                project.getUpdatedAt());
+    public ProjectResponse toDto(ProjectProfile project) {
+        return ProjectResponse.builder()
+                .id(project.getId())
+                .name(project.getName())
+                .repositoryUrl(project.getRepositoryUrl())
+                .environment(project.getEnvironment())
+                .jenkinsBaseUrlRef(project.getJenkinsBaseUrlRef())
+                .jenkinsJobPath(project.getJenkinsJobPath())
+                .containerLabelSelector(project.getContainerLabelSelector())
+                .healthUrl(project.getHealthUrl())
+                .capabilities(project.getCapabilities())
+                .enabled(project.isEnabled())
+                .createdAt(project.getCreatedAt())
+                .updatedAt(project.getUpdatedAt())
+                .build();
     }
 
     private String normalizeOptionalText(String value) {

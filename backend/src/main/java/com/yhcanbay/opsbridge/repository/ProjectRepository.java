@@ -1,13 +1,13 @@
 package com.yhcanbay.opsbridge.repository;
 
-import com.yhcanbay.opsbridge.entity.ProjectProfile;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import com.yhcanbay.opsbridge.entity.ProjectProfile;
 
 public interface ProjectRepository extends JpaRepository<ProjectProfile, UUID> {
 

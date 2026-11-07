@@ -1,14 +1,15 @@
 package com.yhcanbay.opsbridge.exception;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -22,7 +23,7 @@ public class ApiExceptionHandler {
     public ProblemDetail validation(MethodArgumentNotValidException exception) {
         Map<String, String> fields = new TreeMap<>();
 
-        for (var fieldError : exception.getBindingResult().getFieldErrors()) {
+        for (FieldError fieldError : exception.getBindingResult().getFieldErrors()) {
             String fieldName = requestFieldName(fieldError.getField());
             fields.putIfAbsent(fieldName, fieldError.getDefaultMessage());
         }
@@ -41,10 +42,14 @@ public class ApiExceptionHandler {
     }
 
     private String requestFieldName(String validationProperty) {
-        return switch (validationProperty) {
-            case "repositoryUrlValid" -> "repositoryUrl";
-            case "healthUrlValid" -> "healthUrl";
-            default -> validationProperty;
-        };
+        if ("repositoryUrlValid".equals(validationProperty)) {
+            return "repositoryUrl";
+        }
+
+        if ("healthUrlValid".equals(validationProperty)) {
+            return "healthUrl";
+        }
+
+        return validationProperty;
     }
 }

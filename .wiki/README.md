@@ -1,6 +1,6 @@
 # OpsBridge proje hafızası
 
-Son güncelleme: **2026-11-04 — Europe/Istanbul**
+Son güncelleme: **2026-11-07 — Europe/Istanbul**
 
 Bu klasör, kullanıcının aynı proje bağlamını her sohbette yeniden anlatmaması ve Codex ile ilerleyişi ortak kayıtlardan takip edebilmesi için oluşturuldu. Konuşmaların anlamı korunarak özetlenir; sözcüğü sözcüğüne sohbet dökümü değildir.
 
@@ -17,6 +17,8 @@ Kaynak sohbet ve teknik inceleme `C:\Yazılım\Personal_Task_App` deposunda baş
 | [REFERENCE_APP.md](REFERENCE_APP.md) | Ayrı Personal_Task_App deposunun ilk teknik incelemesi |
 | [HISTORY.md](HISTORY.md) | Önemli görüşmelerin, karar değişimlerinin ve çalışma sonuçlarının tarihçesi |
 | [../AGENTS.md](../AGENTS.md) | Codex'in bu hafızayı bulması ve güncel tutması için kısa depo talimatları |
+| [Kod yazım rehberi](../docs/CODING_STYLE.md) | Kullanıcının seçtiği Sozluk_Uygulamasi referansı ve mevcut koda uygulanan yazım kuralları |
+| [Mimari](../docs/ARCHITECTURE.md) | Aynı sunucuda ayrı OpsBridge kurulumu, tarayıcıdan admin erişimi ve sonraya bırakılan URL yayını |
 
 Önce `STATUS.md` ile güncel durumu al. Ürün ve öğrenme bağlamı için `CONTEXT.md` dosyasını kullan; geçmiş gerekçeler için `HISTORY.md` dosyasına bak.
 

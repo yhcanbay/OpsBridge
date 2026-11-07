@@ -1,15 +1,20 @@
 # OpsBridge geliştirme rehberi
 
-Araştırma ve düzenleme: **2026-11-04 — Europe/Istanbul**.
+Araştırma: **2026-11-04**; son düzenleme: **2026-11-07 — Europe/Istanbul**.
 
 Kullanıcının açık tercihi: **az satır yerine anlaşılır kod**. Dosya adı, bulunduğu paket ve çağrı akışı üzerinden bir işin nerede yapıldığını takip edebilmek temel ölçüt. Bu rehberdeki teknoloji seçimleri bu projenin mevcut kapsamına aittir; her uygulama için tek doğru teknoloji listesi olduğu iddia edilmez.
+
+**7 Kasım kullanıcı talimatıyla yazım referansı Sozluk_Uygulamasi oldu.** Önceki record DTO ve tek sınıflı servis tercihleri bu talebe göre değişti. Yerel örnekler, biçim ve güncel kurallar [kod yazım rehberinde](CODING_STYLE.md).
+
+**Çalışma modeli:** OpsBridge, izlenen uygulamayla aynı sunucuda ayrı servisler olarak çalışır. Uzak kullanıcı tarayıcıdan URL'ye admin girişi yapar; kaynak işlemlerini o sunucudaki backend yürütür. URL/HTTPS yayını en son yapılacak ayrı iştir. [Mimari ve kaynak sınırları](ARCHITECTURE.md).
 
 ## Spring Boot: katmanların sorumluluğu
 
 ```text
 com.yhcanbay.opsbridge
 ├── config/                   Spring Security yapılandırması
-├── controller/               HTTP endpoint'leri
+├── controller/               I…Controller sözleşmeleri ve HTTP mapping
+│   └── impl/                 …ControllerImpl uygulamaları
 ├── dto/
 │   ├── request/              Gelen veri ve validation
 │   └── response/             API'nin döndürdüğü sözleşme
@@ -18,7 +23,8 @@ com.yhcanbay.opsbridge
 ├── exception/                Uygulama hataları ve HTTP hata çevirisi
 ├── mapper/                   DTO–entity ve adapter–response dönüşümü
 ├── repository/               Veritabanı sorguları
-├── service/                  Kullanım senaryoları ve transaction
+├── service/                  I…Service sözleşmeleri
+│   └── impl/                 Kullanım senaryoları ve transaction
 └── integration/
     ├── adapter/              Jenkins/runtime/health sözleşmeleri
     │   └── stub/             Henüz dış istek yapmayan uygulamalar
@@ -27,9 +33,9 @@ com.yhcanbay.opsbridge
 
 Örneğin proje oluşturma akışı:
 
-1. `ProjectController`, `ProjectRequest` verisini doğrulatır ve servisi çağırır.
-2. `ProjectService`, kullanım senaryosunun transaction'ını yönetir.
-3. `ProjectMapper`, gelen veriyi `ProjectProfile` entity'sine çevirir.
+1. `IProjectController`, `ProjectRequest` verisini doğrulatır; `ProjectControllerImpl` servisi çağırır.
+2. `IProjectService` uygulaması `ProjectServiceImpl`, kullanım senaryosunun transaction'ını yönetir.
+3. `ProjectMapper.createEntity`, gelen veriyi `ProjectProfile` entity'sine çevirir.
 4. `ProjectRepository`, entity'yi kaydeder.
 5. Mapper, kaydedilmiş veriyi `ProjectResponse` olarak döndürür; controller 201 ve Location header'ını üretir.
 
@@ -40,14 +46,16 @@ Entity, HTTP isteğini veya DTO'yu bilmez. Service HTTP 404 üretmez; `ProjectNo
 | Teknoloji / yaklaşım | OpsBridge'deki seçim ve gerekçe |
 |---|---|
 | Request/response DTO | Gelen ve dönen sözleşmeler ayrı; entity doğrudan API'ye açılmaz |
-| Java record | DTO için açık, değişmez veri taşıyıcısı; JPA entity için normal sınıf |
-| Mapper | `ProjectMapper` ve `IntegrationMapper` içinde açık dönüşüm; alanların nereye gittiği izlenebilir |
+| DTO sınıfı | Referanstaki gibi Lombok `@Data`, `@Builder`, `@AllArgsConstructor`, `@NoArgsConstructor`; normal alanlar ve getter/setter'lar |
+| Mapper | `ProjectMapper` ve `IntegrationMapper` içinde `toDto`, `createEntity`, `updateEntity`; response oluştururken isimli builder alanları |
 | MapStruct | Araştırıldı; çok sayıda tekrar eden dönüşüm oluştuğunda değerlendirilecek. Şu an iki küçük mapper için annotation processor eklenmedi |
-| Constructor injection | Bağımlılıklar constructor'da görünür; field injection kullanılmaz |
-| Service interface | Adapter'larda gerçek bir değiştirilebilirlik sınırı var. Tek uygulamalı her servis için ayrıca interface/impl çifti üretilmedi |
-| Lombok | Eklenmedi; entity getter/setter ve yaşam döngüsü davranışı açıkça okunabilir |
+| Constructor injection | `@RequiredArgsConstructor` ve `private final` bağımlılıklar |
+| Controller/service interface | Kullanıcının referansı doğrultusunda `I…` arayüzü ve `impl/` altındaki uygulama sınıfı |
+| Lombok | DTO, entity erişim metotları ve constructor üretimi için eklendi; sürümü Boot yönetir, Maven annotation processor açık |
 
 MapStruct, derleme sırasında mapper uygulaması üretebilir; Spring component modeli ve eşlenmeyen alanlar için derleme kontrolü sunar. Manuel mapper seçimi bu küçük model için proje kararıdır. [MapStruct kararlı sürüm rehberi](https://mapstruct.org/documentation/stable/reference/html/).
+
+Lombok'taki `@Data` erişim metotlarını ve temel nesne metotlarını, `@Builder` isimli alanlarla nesne oluşturmayı üretir. JPA entity'de `@Getter`/`@Setter` kullanılır; koleksiyon güncellemesi ve lifecycle metotları açık kalır. [Lombok Data](https://projectlombok.org/features/Data), [Builder](https://projectlombok.org/features/Builder), [Maven kurulumu](https://projectlombok.org/setup/maven).
 
 ### Session ve JWT
 
@@ -101,7 +109,7 @@ Redux/Zustand, TanStack Query veya React Hook Form/Zod şu an eklenmedi. Paylaş
 
 ## Biçim ve doğrulama
 
-Java kodu açık import'larla, dört boşluk girintiyle biçimlendirilir. Bu düzenlemede ana kaynaklar ve testler `google-java-format 2.0.0 --aosp` ile biçimlendirildi. Frontend'de Prettier kullanılır; `.editorconfig` editör temelini belirtir. [Java formatter kaynağı](https://github.com/google/google-java-format), [Prettier options](https://prettier.io/docs/options).
+Java kodu açık import'larla, dört boşluk girintiyle ve Sozluk_Uygulamasi örneklerine göre yazılır. Önceki AOSP formatter çıktısı güncel yazım ölçütü değildir. Frontend JS/JSX'te dört boşluk, tek tırnak, noktalı virgülsüz yazım ve son elemandan sonra virgül olmaması Prettier ile uygulanır; `.editorconfig` editör temelini belirtir. [Kod yazım rehberi](CODING_STYLE.md), [Prettier options](https://prettier.io/docs/options).
 
 Kontroller:
 
@@ -115,7 +123,7 @@ npm test
 npm run build
 ```
 
-Backend paketleri taşındığında ilk kontrolde `mvn clean verify` kullanılır; eski sınıfların `target/` içinde kalması önlenir. 11 backend testi API/oturum ve doğrudan DB integrity davranışlarını, 7 frontend testi router/oturum ve Axios protokolünü kapsar. jsdom testi gerçek tarayıcı görsel kontrolünün yerine geçmez. Son çalıştırmalar ve doğrulama sınırları [.wiki/STATUS.md](../.wiki/STATUS.md) içinde tutulur.
+Backend paketleri taşındığında ilk kontrolde `mvn clean verify` kullanılır; eski sınıfların `target/` içinde kalması önlenir. 11 backend testi API/oturum ve doğrudan DB integrity davranışlarını, 11 frontend testi router/oturum, Axios protokolü ve proje formunu kapsar. jsdom testi gerçek tarayıcı görsel kontrolünün yerine geçmez. Son çalıştırmalar ve doğrulama sınırları [.wiki/STATUS.md](../.wiki/STATUS.md) içinde tutulur.
 
 ## Üç geliştirme becerisi
 
