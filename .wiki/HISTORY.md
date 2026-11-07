@@ -2,6 +2,14 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-07 — Karşılaştırmanın kabulü ve durum kayıtlarının güncellenmesi
+
+Kullanıcı önceki açıklamayı okuduğunu, çakışan bir durum görmediğini ve mevcut durumu güncelleyebileceğimizi belirtti. Karşılaştırmanın genel uyumu, aynı sunucu/ayrı uygulama modeli ve açıklanan sınırlarla kaydedildi. “İki uygulama” ifadesi servis grupları olarak korundu; proje adı, container sayısı veya uzak sunucu kapsamı değiştirilmedi. Mimariye bileşen görevleri ile hedef CI/CD akışı eklendi; kaynakta gözlenen pipeline ile canlı doğrulanmamış tetikleme/deployment ayrıldı. Roadmap'in güncel özeti ve test sayıları 7 Kasım refaktörüne göre düzeltildi; 5 Kasım Docker/tarayıcı kanıtı tarihsel olarak korundu. CONTEXT/STATUS ve bu tarihçe güncellendi. Sıradaki özellik işi yerel sunucu deposu + GitHub commit/branch görünürlüğü olarak kaldı. Uygulama/canlı sistem değişikliği, yeni test/build/deployment veya commit/push yapılmadı.
+
+## 2026-11-07 — Dış metinle mimari ve CI/CD tutarlılık incelemesi
+
+Kullanıcı, iki uygulama/Docker, feature branch → push → main → Jenkins → deploy ve ngrok görevleri içeren bir metnin projeyle çelişen noktalarını sordu. Bu, karşılaştırma isteği olarak ele alındı; DevOpsTakip adıyla yeniden adlandırma veya aynı sunucu kararından vazgeçme talimatı sayılmadı. Compose tanımları ve Personal_Task_App Jenkinsfile salt okunur yeniden incelendi. İki mantıksal uygulamanın üçer servisten oluştuğu, gelecekte farklı host'lara ayırmanın onaylanmış kapsam olmadığı, izleme kapsamının kısmen netleştiği ve dış URL/admin modelinin metne eklenmesi gerektiği belirlendi. Pipeline aşamaları kaynakta var; webhook/main otomasyonu canlı doğrulanmadı, feature/PR ayrımı ve Jenkinsfile içinde deploy branch koşulu yok. Jenkins/ngrok resmî kaynaklarıyla teknik roller kontrol edildi. Ayrıntı STATUS'ta; uygulama ve canlı sistemler değiştirilmedi, test/build/deployment yapılmadı.
+
 ## 2026-11-07 — Çalışma modeli: aynı sunucuda kurulum, uzaktan admin erişimi
 
 **Önceki açıklama:** Kullanıcı, OpsBridge'in yalnızca takip edilen projenin sunucusunda çalışacak şekilde olup olmadığını sordu. Kaynaklarda localhost'a bağlı tek Compose kurulumu ve stub entegrasyonlar görüldü; kodun o aşamada aynı host'u zorunlu kılmadığı, uzak izleme desteğinin de henüz olmadığı açıklandı. O soru tek başına kapsam kararı sayılmadı.

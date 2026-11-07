@@ -2,6 +2,27 @@
 
 Son güncelleme: **2026-11-07 — Europe/Istanbul**
 
+## 2026-11-07 — Karşılaştırma kabulü ve güncel devam özeti
+
+**Kullanıcı açıklaması:** Önceki mimari/CI-CD karşılaştırmasını okuyup genel modelde çakışma görmediğini belirtti ve mevcut durumu güncellememizi istedi. Karşılaştırma tamamlandı; son aynı sunucu kararı ve açıklanan uygulama sınırları korunur. DevOpsTakip bu metindeki OpsBridge karşılığıdır; yeniden adlandırma yapılmadı.
+
+- **Kabul edilen model:** Asıl uygulama ve OpsBridge aynı sunucuda ayrı Compose/servis gruplarıdır; mevcut tanımlarda üçer servis vardır. Jenkins build/test/deploy otomasyonunu, OpsBridge takip ve uygulandıkça yetkili yönetim işlemlerini yürütür. Uzak kullanıcı URL'den admin girişi yapar; URL/HTTPS yayını en son hazırlanır. Yerel Git yolu sunucudaki depoya aittir.
+- **Uygulanan:** OpsBridge admin session/CSRF, profil CRUD ve arayüz temeli var; Sozluk_Uygulamasi yazımına refaktör tamamlandı. O çalışmada H2 üzerinde 11 backend testi, 11 frontend testi, format kontrolü ve build geçti. Canlı Docker/tarayıcı/kalıcılık kanıtı 5 Kasım'a aittir; 7 Kasım refaktörü yeniden deploy edilmedi.
+- **Açık:** Gerçek Git/Jenkins/Docker/health bağlantıları ve panelden build tetikleme yok. Referans pipeline kaynakta mevcut; güncel webhook/ngrok tetikleme ve başarılı deployment zinciri doğrulanmadı. Feature/PR testleri, frontend test/lint ve deploy branch sınırı ayrı pipeline işleridir; rolling/kesintisiz dağıtım seçilmedi.
+- **Sıradaki iş:** Kullanıcının önceki önceliği doğrultusunda sunucudaki yerel depo + GitHub commit/branch görünürlüğünü geliştirmek. Sonra, kullanıcı Jenkins testi sınırına uyarak referans kurulum/bağlantı kanıtını tamamlamak ve pipeline iyileştirmelerine devam etmek. Bu durum güncellemesi özellik uygulamasını başlatma talimatı olarak ele alınmadı.
+
+**Güncellenen ve kontrol edilen:** Mimari rol/CI-CD açıklaması, roadmap'in güncel özeti, CONTEXT ve HISTORY uyumlu hale getirildi; önceki kayıtlar tarihsel kanıt olarak korundu. Bu tur yalnızca belge/hafıza düzenlemesidir: uygulama veya canlı sistem değiştirilmedi, test/build/deployment ve commit/push yapılmadı. Ayrıntı: [mimari](../docs/ARCHITECTURE.md), [roadmap](../docs/ROADMAP.md).
+
+## 2026-11-07 — Kullanıcının mimari ve CI/CD metniyle karşılaştırma
+
+**İstek:** Kullanıcı, “asıl uygulama + DevOpsTakip”, aynı host'ta Docker, feature/commit/push/main/Jenkins/deploy akışı ve ngrok rollerini anlatan metni mevcut projeyle karşılaştırmamızı istedi. Metin değerlendirme girdisidir; isim değişikliği veya yeni mimari karar olarak uygulanmadı. DevOpsTakip, karşılaştırmada OpsBridge'e karşılık gelir.
+
+**Kaynak bulguları:** OpsBridge ve Personal_Task_App Compose tanımlarında ayrı ayrı frontend/backend/PostgreSQL olmak üzere üçer servis var; toplam iki container ifadesi fiziksel kurulumun basitleştirilmiş anlatımıdır. Metin tek container zorunluluğunu ayrıca reddettiğinden iki uygulama ayrımıyla temel çelişki yok; şema servis grupları olarak yazılmalı. Son kullanıcı kararı sunucu başına aynı host'ta kurulumdur; ileride ayırmak kabul edilmiş iş değildir, ayrıca kapsam değişikliği gerektirir. İzlenecek bütün bilgiler belirsiz değil: yerel/GitHub commit ve branch görünümü kullanıcı isteği, Jenkins/Docker/health sözleşmeleri mevcut; gerçek adapter bağlantıları henüz yok. URL/admin uzak kullanım ve sunucudaki yerel Git sınırı metinde eksik.
+
+Personal_Task_App `Jenkinsfile` salt okunur yeniden incelendi: Checkout → Backend Test (`mvnw test`) → Frontend Build → Docker Deploy (`compose up -d --build --remove-orphans`) → Verify. Frontend test/lint çağrısı, feature/PR için ayrı akış ve deploy aşamasında branch koşulu yok. 5 Kasım'da job'ın `main` seçtiği görülmüştü; bugünkü inceleme canlı job/webhook doğrulaması değildir. Jenkinsfile'da `triggers` olmaması, job tarafında webhook bulunmadığını kanıtlamaz. Bu nedenle otomatik main tetikleme ve güncel başarılı deployment doğrulanmış davranış diye sunulmaz. Rolling/kesintisiz dağıtım uygulanmış değil. Jenkins ve ngrok resmî belgeleri tetikleme/tünel ayrımı için kontrol edildi.
+
+**Sınır:** Uygulama/pipeline/Compose dosyaları, Jenkins ayarları ve canlı sistemler değiştirilmedi; test/build, fetch/pull veya deployment çalıştırılmadı. Yalnızca değerlendirme kaydı eklendi. Mevcut aynı sunucu mimarisi ve URL yayınını en sona bırakma kararı korunur.
+
 ## 2026-11-07 — Sunucuda ayrı OpsBridge ve tarayıcıdan admin erişimi
 
 **Kesin kullanıcı kararı:** OpsBridge, takip edilen uygulamayla aynı sunucuda ayrı bir uygulama olarak çalışacak. Kullanıcı başka bir bilgisayardan belirli URL'ye admin girişi yaparak sunucudaki projeleri kontrol edecek. URL üzerinden yayınlama en son yapılacak ayrı iştir; yayın tarihi ve alan adı belirlenmedi.

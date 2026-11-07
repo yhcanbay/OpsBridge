@@ -2,6 +2,8 @@
 
 Karar tarihi: **2026-11-07 — Europe/Istanbul**.
 
+Kullanıcı, mimari ve CI/CD metniyle yapılan karşılaştırmayı okuyup genel modelde çakışma görmediğini belirterek mevcut durumun güncellenmesini istedi. Aşağıdaki işleyiş, karşılaştırmadaki açıklamalarla birlikte esas alınır. Belgede geçen DevOpsTakip adı bu depodaki OpsBridge'e karşılık gelir; proje adı değiştirilmedi.
+
 ## Kullanıcının belirlediği model
 
 OpsBridge, takip edilen uygulamanın çalıştığı sunucuda ayrı bir uygulama olarak çalışır. Kullanıcı başka bir bilgisayardan tarayıcıyla OpsBridge'in URL'sine girer, admin hesabıyla oturum açar ve bu sunucudaki projeleri görüntüler/yönetir. Kullanıcının bilgisayarında ayrıca OpsBridge backend'i kurulması gerekmez.
@@ -42,12 +44,40 @@ flowchart LR
 
 OpsBridge'in mevcut `frontend`, `backend`, `db` servisleri kendi Compose projesinde kalır. Takip edilen uygulamanın kodu, uygulama veritabanı ve dağıtımı ayrıdır. Aynı sunucuda bulunmak aynı container'da veya aynı Compose projesinde çalışmak anlamına gelmez.
 
+İlk izlenen Personal_Task_App de frontend/backend/PostgreSQL servislerinden oluşur. İki uygulamanın Compose tanımlarında üçer servis, toplam altı servis vardır. “İki uygulama” ayrımı iki mantıksal sistemi anlatır; tam olarak iki container sınırı koymaz. Jenkins'in container içinde çalışması zorunlu değildir; geliştirme ortamında seçili Jenkins, mevcut Windows servisidir.
+
 | Sorumluluk | Çalışacağı yer |
 |---|---|
 | Ekranları kullanmak ve admin girişi yapmak | Kullanıcının tarayıcısı |
 | Oturum/yetki kontrolü, Git/Jenkins/Docker işlemleri | Sunucudaki OpsBridge backend'i |
 | OpsBridge profil ve ileride işlem kayıtları | OpsBridge'in kendi PostgreSQL'i |
 | Yerel Git, Docker ve takip edilen uygulama | Aynı sunucunun kaynakları |
+
+## Bileşenlerin görevleri ve CI/CD işleyişi
+
+| Bileşen | Görevi |
+|---|---|
+| GitHub / uzak Git deposu | Kod ve branch'leri tutmak, yapılandırılmış webhook'larla değişiklik bildirmek |
+| Jenkins | Kodu almak; build, test ve deploy otomasyonunu yürütmek |
+| ngrok | Gerektiğinde GitHub webhook'unu yereldeki Jenkins'e ulaştırmak; Jenkins erişilebilir olduğunda kullanımı zorunlu değil |
+| Docker | Uygulamaların servislerini ayrı container'larda çalıştırmak |
+| OpsBridge | Tanımlı kaynaklardan süreç bilgisi toplamak/göstermek ve uygulandıkça yetkili yönetim işlemlerini sunmak |
+
+Jenkins, OpsBridge'den ayrı bir bileşendir. ngrok bağlantı sağlar; test ve deployment yürütmez.
+
+Hedef otomasyon akışı:
+
+```text
+Geliştirici: feature branch → commit → uzak depoya push
+    → main'in güncellenmesi
+    → yapılandırılmış Jenkins tetikleyicisi
+    → checkout → build/test → başarılıysa deploy → doğrulama
+    → asıl uygulamanın yeni sürümü
+```
+
+Yerel commit tek başına bu uzak otomasyonu tetiklemez. Hangi branch/olayın hangi pipeline'ı başlatacağı yapılandırmayla belirlenir. Feature/PR testleri ayrı eklenebilir; bunların deployment yetkisi ayrıca sınırlandırılır. Rolling update veya kesintisiz dağıtım stratejisi henüz seçilmedi.
+
+**Kaynakta gözlenen:** Personal_Task_App Jenkinsfile'ı Checkout → Backend Test → Frontend Build → Docker Deploy → Verify aşamalarını içerir. Frontend test/lint çağrısı, ayrı feature/PR test akışı ve Jenkinsfile içinde deploy branch koşulu yoktur. Job'ın `main` seçtiği 5 Kasım'da görülmüştü. Güncel webhook/ngrok otomasyonu ve başarılı deployment zinciri ayrıca doğrulanmalıdır; bunlar yalnızca bu hedef akışın kabulüyle tamamlanmış sayılmaz.
 
 ## Entegrasyonlara etkisi
 

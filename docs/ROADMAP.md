@@ -13,12 +13,13 @@ Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık Dev
 - **22 Kasım**, vize haftasına çalışan bir sürümle girmek için önerilen hazırlık hedefidir; hocanın bildirdiği ayrı bir teslim tarihi değildir.
 - Güvenlik geliştirmeleri için önerilen başlangıç **30 Kasım**. Final teslim tarihi ve haftalık ayrılabilecek süre henüz bilinmiyor. Aralık tarihleri çalışma hedefidir; final tarihi öğrenildiğinde yeniden düzenlenir.
 - İlerleme, çalışan akış ve kabul ölçütüyle takip edilir. Dosya veya ekranın bulunması, entegrasyonun tamamlandığını göstermez.
+- **7 Kasım karşılaştırma sonucu:** Kullanıcı mimari/CI-CD açıklamalarını okuyup genel modelde çakışma görmediğini belirtti ve durumun güncellenmesini istedi. İki uygulama ayrı Compose/servis gruplarıdır; Jenkins otomasyonu yürütür, OpsBridge takip/yönetim panelidir. Hedef CI/CD akışı ve mevcut uygulama sınırları [mimaride](ARCHITECTURE.md) birlikte kaydedildi. Bu sonuç canlı entegrasyonların tamamlandığı anlamına gelmez.
 
 ## Şu anda neredeyiz?
 
-**Takvimde 2. haftadayız. 1. haftanın OpsBridge Docker/tarayıcı/kalıcılık doğrulaması tamamlandı; referans uygulamanın canlı kurulum ve bağlantı kanıtı açık. Önce bu kalan kanıtı tamamlayıp 2. haftanın pipeline işlerine geçmeliyiz.**
+**7 Kasım itibarıyla takvimde 2. haftadayız. OpsBridge uygulama temeli ve Sozluk_Uygulamasi yazımına uyarlama tamamlandı; son kaynak kontrollerinde 11 backend ve 11 frontend testi geçti. Aynı sunucuda ayrı OpsBridge + tarayıcıdan admin erişimi modeli kesinleşti. Sıradaki özellik işi sunucudaki yerel depo ve GitHub için commit/branch görünürlüğüdür. Gerçek Git/Jenkins/Docker/health entegrasyonları henüz yok; URL/HTTPS yayını son aşamada yapılacak.**
 
-Kaynak incelemesinde OpsBridge HEAD'i `47313af`, Personal_Task_App HEAD'i `faae3d0`. Referans kaynaklarda aşağıdaki pipeline iyileştirmeleri bulunmuyor. Kullanıcı, kullandığı Jenkins'in **Windows üzerinde `localhost:8081`** olduğunu doğruladı; salt okunur job incelemesinde `taskapp-cicd`, `*/main` ve `Jenkinsfile` belirlendi. Kimlik doğrulanmış API erişimi ve güncel başarılı deployment ayrıca doğrulanmadı.
+5 Kasım kaynak incelemesinde OpsBridge HEAD'i `47313af`, Personal_Task_App HEAD'i `faae3d0` idi; bunlar tarihsel kayıtlardır. Kullanıcı, kullandığı Jenkins'in **Windows üzerinde `localhost:8081`** olduğunu doğruladı; o günkü salt okunur job incelemesinde `taskapp-cicd`, `*/main` ve `Jenkinsfile` belirlendi. 7 Kasım'da referans Jenkinsfile yeniden okundu: frontend test/lint, feature/PR ayrımı ve deploy branch koşulu yok. Kimlik doğrulanmış API, webhook/ngrok üzerinden otomatik tetikleme ve güncel başarılı deployment ayrıca doğrulanmadı. Referans uygulamanın canlı kurulum kanıtı açık kaldığından 1. haftanın tamamı bitmiş sayılmaz.
 
 **Etkin çalışma sınırı:** Kullanıcı 8081 Jenkins üzerinden test yapıyor ve müdahale istemiyor. Jenkins servisi/job/ayar değiştirme, yeniden başlatma veya build tetikleme yapılmaz. Başlatılan referans Compose derlemesi bu açıklama üzerine uygulama container'ları yeniden oluşturulmadan iptal edildi; kullanıcı testi sürerken bu deployment'a devam edilmez. OpsBridge doğrulaması kendi `opsbridge` Compose projesi ve 5174/8082/5433 portlarıyla tamamlandı.
 
@@ -26,9 +27,9 @@ Kaynak incelemesinde OpsBridge HEAD'i `47313af`, Personal_Task_App HEAD'i `faae3
 |---|---|
 | Spring Boot–React–PostgreSQL temeli | Mevcut; kaynaklar ve kurulum belgeleri hazır |
 | ADMIN girişi, session/CSRF, profil CRUD | Mevcut; 5 Kasım'da Docker/Nginx üzerinden gerçek Chrome ile giriş/çıkış ve profil ekleme–düzenleme–silme doğrulandı |
-| Katmanlar, DTO/mapper, Router/Axios, migration'lar | Mevcut; okunabilir kod düzeni kuruldu |
-| Otomatik kontroller | 5 Kasım'da Maven verify ile 11 backend testi ve jar; 7 frontend testi ve Prettier kontrolü geçti. Docker içinde backend package ve frontend üretim build'i başarılı |
-| OpsBridge Docker kurulumu ve gerçek tarayıcı akışı | Tamamlandı: üç servis çalışıyor, DB healthy, health UP; Java 21 container, doğrudan proje URL'si, giriş sonrası dönüş ve 390px görünüm doğrulandı. Üç servis yeniden başlatıldı; profil korundu ve yalnızca geçici test profili silindi |
+| Katmanlar, DTO/mapper, Router/Axios, migration'lar | Mevcut; 7 Kasım'da Sozluk_Uygulamasi yazımına uyarlandı: controller/service arayüzleri ve impl sınıfları, Lombok DTO, açık React form alanları |
+| Otomatik kontroller | 7 Kasım kaynak refaktöründe temiz Maven verify ile 11 backend testi ve jar; 11 frontend testi, Prettier kontrolü ve üretim build'i başarılı. Bu durum güncellemesinde kontroller tekrarlanmadı |
+| OpsBridge Docker kurulumu ve gerçek tarayıcı akışı | 5 Kasım'da üç servis, DB healthy/health UP, Java 21, giriş/CRUD/doğrudan URL/dar ekran ve yeniden başlatma sonrası kalıcılık doğrulandı. 7 Kasım kaynak refaktörü yeniden deploy edilmedi; yeni kodun canlı tarayıcı kanıtı yok |
 | Personal_Task_App temiz kurulum ve gerçek Jenkins bağlantısı | Kurulum denemesi kullanıcı testi nedeniyle iptal edildi. Yerel Jenkins/job/branch ve mevcut Compose label/DB volume'u belirlendi; başarılı deployment/API/ağ doğrulaması açık |
 | 2. haftanın pipeline iyileştirmeleri | Referans kaynaklarda lint aşaması, JUnit yayınlama, commit/build image kimliği, özel label'lar ve Actuator health eksik |
 | OpsBridge canlı veri kartları | Henüz yok; adapter'lar dış istek yapmadan başlangıç durumları döndürüyor |
