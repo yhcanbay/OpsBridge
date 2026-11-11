@@ -1,6 +1,6 @@
 # OpsBridge — vize ve devam planı
 
-Güncelleme: **2026-11-07 — Europe/Istanbul**.
+Güncelleme: **2026-11-11 — Europe/Istanbul**.
 
 Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık DevSecOps Proje Planı 1.md>) mevcut kaynaklar ve kullanıcı açıklamalarına göre güncellenmiş devam önerisidir. İlk plan tarihsel kaynak olarak korunur. Planlanan işler tamamlanmış özellik olarak değerlendirilmez.
 
@@ -32,7 +32,7 @@ Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık Dev
 | OpsBridge Docker kurulumu ve gerçek tarayıcı akışı | 5 Kasım'da üç servis, DB healthy/health UP, Java 21, giriş/CRUD/doğrudan URL/dar ekran ve yeniden başlatma sonrası kalıcılık doğrulandı. 7 Kasım kaynak refaktörü yeniden deploy edilmedi; yeni kodun canlı tarayıcı kanıtı yok |
 | Personal_Task_App temiz kurulum ve gerçek Jenkins bağlantısı | Kurulum denemesi kullanıcı testi nedeniyle iptal edildi. Yerel Jenkins/job/branch ve mevcut Compose label/DB volume'u belirlendi; başarılı deployment/API/ağ doğrulaması açık |
 | 2. haftanın pipeline iyileştirmeleri | Referans kaynaklarda lint aşaması, JUnit yayınlama, commit/build image kimliği, özel label'lar ve Actuator health eksik |
-| OpsBridge canlı veri kartları | Henüz yok; adapter'lar dış istek yapmadan başlangıç durumları döndürüyor |
+| OpsBridge canlı veri kartları | Henüz yok; 11 Kasım'da geçici adapter/stub yapısı kaldırıldı. Başlangıç durumlarını doğrudan `IntegrationServiceImpl` üretiyor |
 | Build tetikleme, queue/build eşlemesi, işlem geçmişi | Henüz yok |
 | Çoklu roller, tarama, rapor ve security gate | Henüz yok; mevcut ADMIN/CSRF/environment temeli bu teslimlerin tamamlandığı anlamına gelmez |
 
@@ -54,7 +54,7 @@ Vize haftası araya alındığından, sekiz geliştirme haftasının takvim biti
 |---|---|---|---|
 | 1 — 28 Ekim–3 Kasım; kalanını 5–6 Kasım'da kapatma hedefi | OpsBridge ortam kanıtı tamam; referans uygulama kanıtı açık | Referans uygulama kurulumunu ve erişimini, kullanıcı Jenkins testi sonrasında doğrulama | OpsBridge giriş/CRUD/kalıcılık doğrulandı; ayrıca referans uygulama belgeli kurulumla açılmalı |
 | 2 — 4–10 Kasım; pipeline için 7–10 Kasım hedefi | İyileştirmeler kaynaklarda eksik | Tekrarlanabilir pipeline, image kimliği, label ve health | Başarılı kaynak sürümü deploy oluyor; bozuk test/lint deploy'u durduruyor |
-| 3 — 11–17 Kasım | Adapter sözleşmeleri hazır; canlı veri yok | Jenkins geçmişi, Docker durumu ve HTTP health okuma | Gerçek veriler ve doğru hata/son veri zamanı panelde görünüyor |
+| 3 — 11–17 Kasım | Bağlantı durumları serviste üretiliyor; canlı veri yok | Jenkins geçmişi, Docker durumu ve HTTP health okuma | Gerçek veriler ve doğru hata/son veri zamanı panelde görünüyor |
 | 4 — 18–22 Kasım | İşlem akışı yok | Yetkili build tetikleme, queue/build eşleme, işlem kaydı ve demo | Panelden başlatılan build, deploy edilen image ve health ile izlenebiliyor |
 | Vize — 23–29 Kasım | Kullanıcı tarafından doğrulanan hafta | Demo, anlatım ve gerekli hata düzeltmeleri | Temel DevOps akışı gösterilebiliyor |
 | 5 — 30 Kasım–6 Aralık | Temel kimlik doğrulama mevcut | Tehdit modeli, rol/yetki ve erişim sınırları | Yetkisiz API işlemi reddediliyor ve kayda giriyor |
@@ -73,7 +73,7 @@ Vize haftası araya alındığından, sekiz geliştirme haftasının takvim biti
 5. **Kısmen tamamlandı:** Jenkins `8081`, job `taskapp-cicd`, branch `main`; mevcut container seçicisi `com.docker.compose.project=personal_task_app`, DB volume'u `personal_task_app_postgres_data`. Kimlik doğrulanmış API ve güncel başarılı pipeline sonucu henüz doğrulanmadı; secret'lar kaydedilmez.
 6. **Kısmen tamamlandı:** OpsBridge Nginx → backend → PostgreSQL yolu gerçek isteklerle doğrulandı. Jenkins agent'ı ve referans uygulama arasındaki güncel erişim ile OpsBridge container'ından bu hedeflere erişim kullanıcı testi sonrasında doğrulanmalı.
 
-**Kapanış:** OpsBridge ve referans uygulama gerçekten açılmalı; kurulum ve erişim bilgileri belgelenmeli. Bu koşullar sağlanmadan 1. hafta tamamlandı olarak işaretlenmez. Docker erişimi bekleniyorsa örnek yanıtlarla adapter geliştirmesine hazırlık yapılabilir; canlı doğrulama açık kalır.
+**Kapanış:** OpsBridge ve referans uygulama gerçekten açılmalı; kurulum ve erişim bilgileri belgelenmeli. Bu koşullar sağlanmadan 1. hafta tamamlandı olarak işaretlenmez. Docker erişimi bekleniyorsa örnek yanıtlarla bağlantı geliştirmesine hazırlık yapılabilir; canlı doğrulama açık kalır.
 
 ## 2. hafta: izlenen uygulamanın pipeline'ı
 

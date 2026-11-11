@@ -1,6 +1,16 @@
 # Güncel durum ve devam noktası
 
-Son güncelleme: **2026-11-07 — Europe/Istanbul**
+Son güncelleme: **2026-11-11 — Europe/Istanbul**
+
+## 2026-11-11 — Integration akışı sadeleştirildi
+
+**İstek:** Kullanıcı önce `integration/` paketinin amacını sordu ve çok sayıda sınıfın öğrenmesini zorlaştırdığını açıkladı; takip isteğinde bu yaklaşıma göre gereken kodun değiştirilmesini istedi.
+
+**Yapılan:** `integration/` altındaki sekiz dosya ve `IntegrationMapper` kaldırıldı. [IntegrationServiceImpl](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java) yalnızca repository'ye bağımlı; proje/yetenek kontrolü ve yanıt DTO'sunun oluşturulması iki açık metotta. Mevcut controller/service arayüzleri, yanıt DTO'su, API adresi, kart sırası, mesajlar ve durum önceliği korundu. README, geliştirme rehberi ve roadmap mevcut yapıyla uyumlu güncellendi. Öğrenme tercihi AGENTS/CONTEXT içinde kayıtlı.
+
+**Gerçek doğrulama:** `backend/` içinde `mvn.cmd '-Dmaven.repo.local=../.cache/maven' -B -ntp clean verify` başarılı: H2 üzerinde **11 test, 0 hata/başarısızlık**, temiz derleme ve jar üretimi. API testi kart isim/sırasını, yalnız `BUILD_TRIGGER` seçiliyken Jenkins durumunu, diğer yeteneklerin kapalı kalmasını, pasif projenin üç durumunu ve silinen projenin 404 yanıtını da doğruluyor. Paketlenen jar'da eski integration sınıfları/mapper bulunmadığı ve `git diff --check` kontrol edildi. Log Git dışında `.cache/integration-simplification-backend-verify.log` konumunda.
+
+**Sınır ve devam:** Frontend, DB şeması ve canlı sistemler değiştirilmedi; frontend test/build, PostgreSQL suite'i, tarayıcı veya Docker deployment yapılmadı. Gerçek Git/Jenkins/Docker/health bağlantıları hâlâ yok. Sıradaki özellik hedefi Git görünürlüğü; yeni kod mevcut ihtiyaca göre tanıdık servis düzeninde yazılmalı.
 
 ## 2026-11-07 — Karşılaştırma kabulü ve güncel devam özeti
 
@@ -108,7 +118,7 @@ Sekiz haftalık planın **1. haftasından yola çıkarak basit Spring Boot–Rea
 - [ADMIN oturumu](../backend/src/main/java/com/yhcanbay/opsbridge/config/SecurityConfig.java): environment üzerinden hesap, BCrypt doğrulama, session cookie, açık CSRF koruması. JWT araştırıldı; mevcut aynı-origin yönetim paneli için session akışı korundu, gerekçesi rehberde.
 - [Proje profili API'si](../backend/src/main/java/com/yhcanbay/opsbridge/controller/impl/ProjectControllerImpl.java): genel CRUD, UUID, alan doğrulama ve capability kümesi. Controller/service/repository/entity, request/response DTO, mapper, enum, config ve exception paketleri ayrı. Controller ve servis arayüzlerinin uygulamaları `impl/` altında. Entity DTO bilmez; controller entity döndürmez. Dönüşümler açık mapper sınıflarında.
 - [Flyway migration'ları](../backend/src/main/resources/db/migration/): PostgreSQL şeması ve bir Personal_Task_App profili. V1/V2 değiştirilmedi; yeni V3 boş ad/ortam ve tanımsız capability için CHECK kuralları ekler. Silinen örnek profil her başlangıçta tekrar eklenmez.
-- [Adapter arayüzleri](../backend/src/main/java/com/yhcanbay/opsbridge/integration/): Jenkins, runtime/Docker ve HTTP health için ayrı sözleşmeler. Şimdilik dış istek yapmayan başlangıç uygulamaları `NOT_CONNECTED`, `NOT_SUPPORTED`, `DISABLED` döndürür; son başarılı veri zamanı yoktur.
+- [Bağlantı durumları](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java): 11 Kasım sadeleştirmesiyle Jenkins, Docker ve HTTP health durumları doğrudan serviste üretilir. Dış istek yapılmaz; `NOT_CONNECTED`, `NOT_SUPPORTED`, `DISABLED` döner, son başarılı veri zamanı yoktur.
 - [Compose](../compose.yaml), iki Dockerfile, Nginx/Vite API proxy, [.env.example](../.env.example), [kurulum README'si](../README.md) ve [referans uygulama envanteri](../docs/PERSONAL_TASK_APP.md).
 - [Geliştirme rehberi](../docs/DEVELOPMENT_GUIDE.md): Spring/DTO/mapper, session/JWT, React Router/Axios, PostgreSQL/JPA/Flyway tercihleri ve resmî kaynaklar. Frontend app/api/components/constants/context/hooks/layouts/pages/services olarak ayrıldı; Prettier ve `.editorconfig` kullanılıyor. Güncel yazım ölçütü 7 Kasım'dan beri [Sozluk_Uygulamasi referansı](../docs/CODING_STYLE.md); önceki AOSP biçimi zorunlu güncel standart değil.
 - [Üç beceri](../skills/): `backend-developer`, `frontend-developer`, `database-developer`. Doğrulayıcıdan geçti ve `C:\Users\yhcan\.codex\skills` altına kuruldu. Depodaki kopyalar inceleme için tutulur; iki konum otomatik senkron değil. Kök AGENTS.md kullanıcı kod tercihlerini ve bu kaynakları belirtir.

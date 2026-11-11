@@ -1,6 +1,6 @@
 # OpsBridge geliştirme rehberi
 
-Araştırma: **2026-11-04**; son düzenleme: **2026-11-07 — Europe/Istanbul**.
+Araştırma: **2026-11-04**; son düzenleme: **2026-11-11 — Europe/Istanbul**.
 
 Kullanıcının açık tercihi: **az satır yerine anlaşılır kod**. Dosya adı, bulunduğu paket ve çağrı akışı üzerinden bir işin nerede yapıldığını takip edebilmek temel ölçüt. Bu rehberdeki teknoloji seçimleri bu projenin mevcut kapsamına aittir; her uygulama için tek doğru teknoloji listesi olduğu iddia edilmez.
 
@@ -21,15 +21,13 @@ com.yhcanbay.opsbridge
 ├── entity/                   JPA/veritabanı modeli
 ├── enums/                    Capability, IntegrationState
 ├── exception/                Uygulama hataları ve HTTP hata çevirisi
-├── mapper/                   DTO–entity ve adapter–response dönüşümü
+├── mapper/                   DTO–entity dönüşümü
 ├── repository/               Veritabanı sorguları
-├── service/                  I…Service sözleşmeleri
-│   └── impl/                 Kullanım senaryoları ve transaction
-└── integration/
-    ├── adapter/              Jenkins/runtime/health sözleşmeleri
-    │   └── stub/             Henüz dış istek yapmayan uygulamalar
-    └── model/                Adapter'ın iç sonuç modeli
+└── service/                  I…Service sözleşmeleri
+    └── impl/                 Kullanım senaryoları ve transaction
 ```
+
+**11 Kasım sadeleştirmesi:** Jenkins, Docker ve HTTP health başlangıç durumları `IntegrationServiceImpl` içinde doğrudan `IntegrationStatusResponse` olarak oluşturulur. Henüz dış istek yapılmadığı için adapter/stub/factory ve ayrı sonuç modeli kaldırıldı. Akış controller → service → response DTO şeklindedir; gerçek bağlantılar ihtiyaç oldukça tanıdık servis düzeninde eklenir.
 
 Örneğin proje oluşturma akışı:
 
@@ -47,8 +45,8 @@ Entity, HTTP isteğini veya DTO'yu bilmez. Service HTTP 404 üretmez; `ProjectNo
 |---|---|
 | Request/response DTO | Gelen ve dönen sözleşmeler ayrı; entity doğrudan API'ye açılmaz |
 | DTO sınıfı | Referanstaki gibi Lombok `@Data`, `@Builder`, `@AllArgsConstructor`, `@NoArgsConstructor`; normal alanlar ve getter/setter'lar |
-| Mapper | `ProjectMapper` ve `IntegrationMapper` içinde `toDto`, `createEntity`, `updateEntity`; response oluştururken isimli builder alanları |
-| MapStruct | Araştırıldı; çok sayıda tekrar eden dönüşüm oluştuğunda değerlendirilecek. Şu an iki küçük mapper için annotation processor eklenmedi |
+| Mapper | Entity–DTO dönüşümü `ProjectMapper` içinde `toDto`, `createEntity`, `updateEntity` ile yapılır; bağlantı durumları serviste doğrudan yanıt DTO'su olarak oluşturulur |
+| MapStruct | Araştırıldı; çok sayıda tekrar eden dönüşüm oluştuğunda değerlendirilecek. Şu an tek küçük mapper için ek bağımlılık eklenmedi |
 | Constructor injection | `@RequiredArgsConstructor` ve `private final` bağımlılıklar |
 | Controller/service interface | Kullanıcının referansı doğrultusunda `I…` arayüzü ve `impl/` altındaki uygulama sınıfı |
 | Lombok | DTO, entity erişim metotları ve constructor üretimi için eklendi; sürümü Boot yönetir, Maven annotation processor açık |

@@ -122,6 +122,9 @@ class OpsBridgeApiTest {
         mvc.perform(get("/api/projects/" + REFERENCE_ID + "/integrations"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].integration").value("Jenkins"))
+                .andExpect(jsonPath("$[1].integration").value("Docker"))
+                .andExpect(jsonPath("$[2].integration").value("HTTP Health"))
                 .andExpect(jsonPath("$[0].state").value("NOT_CONNECTED"))
                 .andExpect(jsonPath("$[1].state").value("NOT_CONNECTED"))
                 .andExpect(jsonPath("$[2].state").value("NOT_CONNECTED"))
@@ -181,7 +184,7 @@ class OpsBridgeApiTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void absentCapabilitiesAndDisabledProfileHaveDistinctStates() throws Exception {
+    void integrationStatesFollowCapabilitiesAndProfileEnabledFlag() throws Exception {
         MvcResult created =
                 mvc.perform(
                                 post("/api/projects")
@@ -201,12 +204,26 @@ class OpsBridgeApiTest {
                         put(path)
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(project("Minimal", "[]", false)))
+                                .content(project("Minimal", "[\"BUILD_TRIGGER\"]", true)))
                 .andExpect(status().isOk());
         mvc.perform(get(path + "/integrations"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].state").value("DISABLED"));
+                .andExpect(jsonPath("$[0].state").value("NOT_CONNECTED"))
+                .andExpect(jsonPath("$[1].state").value("NOT_SUPPORTED"))
+                .andExpect(jsonPath("$[2].state").value("NOT_SUPPORTED"));
+        mvc.perform(
+                        put(path)
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(project("Minimal", "[\"BUILD_TRIGGER\"]", false)))
+                .andExpect(status().isOk());
+        mvc.perform(get(path + "/integrations"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].state").value("DISABLED"))
+                .andExpect(jsonPath("$[1].state").value("DISABLED"))
+                .andExpect(jsonPath("$[2].state").value("DISABLED"));
         mvc.perform(delete(path).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(get(path + "/integrations")).andExpect(status().isNotFound());
     }
 
     private MockHttpSession login() throws Exception {

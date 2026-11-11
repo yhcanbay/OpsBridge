@@ -15,7 +15,7 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 - Basit `ADMIN` girişi ve çıkışı; sunucuda oturum, BCrypt parola doğrulama ve CSRF koruması.
 - PostgreSQL üzerinde proje profili oluşturma, listeleme, görüntüleme, güncelleme ve silme.
 - İlk kurulumda eklenen `Personal_Task_App` profili.
-- Proje adı yerine profil verileriyle çalışan Jenkins, Docker ve HTTP health adapter arayüzleri.
+- Proje profilinin aktifliği ve yeteneklerine göre üretilen Jenkins, Docker ve HTTP health bağlantı durumları.
 - React üzerinde giriş, proje arama/listeleme, profil düzenleme ve bağlantı durumları.
 
 **Bu sürüm Jenkins/Docker/health verisi çekmez ve build başlatmaz.** Bağlantılar `NOT_CONNECTED`, yetenek tanımlanmamışsa `NOT_SUPPORTED`, profil pasifse `DISABLED` döner. “Aktif profil”, uygulamanın sağlıklı olduğu anlamına gelmez. `SECURITY_VIEW` tanımlanabilir; rapor ekranı henüz yoktur.
@@ -35,8 +35,7 @@ OpsBridge/
 │       │   ├── exception/   Uygulama ve API hataları
 │       │   ├── mapper/      Açık veri dönüşümleri
 │       │   ├── repository/  Veritabanı erişimi
-│       │   ├── service/     I…Service ve impl/ uygulamaları
-│       │   └── integration/ Adapter sözleşmeleri ve stub uygulamalar
+│       │   └── service/     I…Service ve impl/ uygulamaları
 │       └── resources/db/migration/  Flyway şema ve örnek profil
 ├── frontend/                React 19.3.1 / Vite 7.3.7 / Router / Axios
 │   └── src/                 app, api, components, constants, context,
@@ -166,7 +165,7 @@ cd backend
 mvn verify
 ```
 
-11 backend testi giriş/çıkış, gerçek oturum ve CSRF token'ları, yetkisiz erişim, ADMIN kontrolü, genel profil CRUD, geçersiz alanlar, adapter durumları ve doğrudan DB integrity kurallarını kapsar. H2 test kapsamındadır; normal uygulama PostgreSQL kullanır. Paketler taşındıktan sonraki ilk kontrolde eski class dosyalarını kaldırmak için `mvn clean verify` kullanın.
+11 backend testi giriş/çıkış, gerçek oturum ve CSRF token'ları, yetkisiz erişim, ADMIN kontrolü, genel profil CRUD, geçersiz alanlar, bağlantı durumları ve doğrudan DB integrity kurallarını kapsar. H2 test kapsamındadır; normal uygulama PostgreSQL kullanır. Paketler taşındıktan sonraki ilk kontrolde eski class dosyalarını kaldırmak için `mvn clean verify` kullanın.
 
 Frontend biçim kontrolü, 11 davranış testi ve üretim derlemesi, `frontend/` altında:
 
@@ -191,4 +190,4 @@ Gerçekte yapılan kontroller ve ortam sınırları [.wiki/STATUS.md](.wiki/STAT
 
 Kullanılan Jenkins, `http://localhost:8081` üzerindeki mevcut Windows servisidir; job yolu `taskapp-cicd`, branch `main`. Kullanıcı bu Jenkins'te test yaparken servis/job/ayar değiştirilmez ve referans uygulamaya eşzamanlı Compose/deploy uygulanmaz. Ayrı Docker Jenkins tanımı mevcut servisin yerine başlatılmaz. Güncel ortam ayrımı ve doğrulama sınırları teknik envanterde kayıtlıdır.
 
-1. haftanın uygulama temeli hazırlandıktan sonra önerilen devam işi, Personal_Task_App'i Docker ile gerçekten çalıştırmak ve mevcut Jenkins job yolunu doğrulamaktır. Gerçek Jenkins/Docker/health adapter'ları sonraki kapsamdır. Ayrıntılı RBAC, JWT yenileme, tarama, security gate ve Kubernetes bu başlangıç uygulamasında bulunmaz; gelecekteki kapsam kararları ayrıca ele alınır.
+1. haftanın uygulama temeli hazırlandıktan sonra önerilen devam işi, Personal_Task_App'i Docker ile gerçekten çalıştırmak ve mevcut Jenkins job yolunu doğrulamaktır. Gerçek Jenkins/Docker/health bağlantıları sonraki kapsamdır. Ayrıntılı RBAC, JWT yenileme, tarama, security gate ve Kubernetes bu başlangıç uygulamasında bulunmaz; gelecekteki kapsam kararları ayrıca ele alınır.

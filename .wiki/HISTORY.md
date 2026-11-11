@@ -2,6 +2,18 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-11 — Kullanıcı isteğiyle integration kodunun sadeleştirilmesi
+
+Kullanıcı açıklamanın ardından bu yaklaşıma göre gereken kodun değiştirilmesini istedi. `integration/` içindeki sekiz dosya ve aynı alanları yanıt DTO'suna kopyalayan `IntegrationMapper` kaldırıldı. Durum üretimi mevcut `IntegrationServiceImpl` içinde iki metotta toplandı; yalnızca repository bağımlılığı kaldı. Controller/service arayüzü, DTO, API adresi, kart sırası, mesajlar ve pasif/yeteneği kapalı/bağlanmadı davranışı korundu. Önceki hazırlık mimarisinin yerine bugünkü ihtiyaca uygun servis akışı seçildi.
+
+Temiz Maven verify H2 üzerinde 11 test ve jar üretimiyle başarılı oldu. Mevcut API testi yalnız `BUILD_TRIGGER` yeteneği, diğer kartların kapalı kalması, üç kart için pasiflik ve silinen projede 404 kontrolleriyle genişletildi. Jar'da silinen sınıflar bulunmuyor. README, geliştirme rehberi, roadmap ve STATUS güncellendi. Frontend/DB şeması/canlı servis değişikliği, frontend test/build, PostgreSQL suite'i, tarayıcı veya Docker deployment yapılmadı; commit/push yok. Gerçek entegrasyonlar ve Git görünürlüğü açık kaldı.
+
+## 2026-11-11 — Integration yapısının sorgulanması ve öğrenme önceliği
+
+Kullanıcı `integration/` paketinin referans kodda bulunmadığını belirterek amacını sordu; önerdiği kaynak/taktiklerden hareketle çok sayıda sınıf oluşturulmasının öğrenmesini kısıtlı okul zamanında zorlaştırdığını açıkladı. 7 Kasım'daki biçim uyarlamasının tek başına bu ihtiyacı karşılamadığı kaydedildi: dosya sayısı ve işlemin takip edilebilirliği de okunabilirliğin parçası.
+
+Kaynak incelemesinde sekiz integration dosyasının henüz dış istek yapmadığı, yalnızca profil durumları ürettiği görüldü. Gelecekte gerçek bağlantıları ayırmak için kurulan bu yapının mevcut işlev için fazla parçalı olduğu Codex değerlendirmesidir. Mevcut serviste sadeleştirme önerisi uygulama kararı sayılmadı. AGENTS/CONTEXT/STATUS güncellendi; uygulama kodu ve canlı sistemler değiştirilmedi, test/build/deployment çalıştırılmadı.
+
 ## 2026-11-07 — Karşılaştırmanın kabulü ve durum kayıtlarının güncellenmesi
 
 Kullanıcı önceki açıklamayı okuduğunu, çakışan bir durum görmediğini ve mevcut durumu güncelleyebileceğimizi belirtti. Karşılaştırmanın genel uyumu, aynı sunucu/ayrı uygulama modeli ve açıklanan sınırlarla kaydedildi. “İki uygulama” ifadesi servis grupları olarak korundu; proje adı, container sayısı veya uzak sunucu kapsamı değiştirilmedi. Mimariye bileşen görevleri ile hedef CI/CD akışı eklendi; kaynakta gözlenen pipeline ile canlı doğrulanmamış tetikleme/deployment ayrıldı. Roadmap'in güncel özeti ve test sayıları 7 Kasım refaktörüne göre düzeltildi; 5 Kasım Docker/tarayıcı kanıtı tarihsel olarak korundu. CONTEXT/STATUS ve bu tarihçe güncellendi. Sıradaki özellik işi yerel sunucu deposu + GitHub commit/branch görünürlüğü olarak kaldı. Uygulama/canlı sistem değişikliği, yeni test/build/deployment veya commit/push yapılmadı.

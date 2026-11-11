@@ -1,6 +1,6 @@
 # Kullanıcı ve ürün bağlamı
 
-Son güncelleme: **2026-11-07 — Europe/Istanbul**
+Son güncelleme: **2026-11-11 — Europe/Istanbul**
 
 ## Kullanıcının anlattığı geçmiş ve amaç
 
@@ -12,6 +12,12 @@ Kaynak: Bu proje sohbetindeki kullanıcı açıklamaları.
 - Yalnızca çalışan kod değil, neyin neden yapıldığını anlayabileceği bir ilerleme istiyor. Somut uygulama akışları ve küçük adımlar açıklamayı kolaylaştırır.
 - Mevcut sekiz haftalık raporu yapay zekâ oluşturmuş. Kullanıcı raporun doğru/yanlış ve uygulanabilir kısımlarını kendi fikri üzerinden değerlendirmemizi istiyor; raporun tamamını onaylamış değil.
 - Sohbet bağlamını `.wiki` altında saklamamızı açıkça istedi. Amaç aynı geçmişi tekrar yazmamak ve ilerleyişi Codex ile senkron yürütmek.
+
+## 2026-11-11 — Öğrenmeye uygun sadelik ve sınıf sayısı
+
+**Kullanıcı geri bildirimi:** `integration/` paketinin referans projede bulunmadığını belirterek neden eklendiğini sordu. Verdiği bir kaynak veya taktik üzerine çok sayıda sınıf oluşturulmasının, kod üzerinden öğrenmesini okul için ayırabildiği kısıtlı zamanda zorlaştırdığını açıkladı. Anlaşılır kod tercihi yalnızca metotların biçimini değil, bir işlemi takip etmek için gereken dosya sayısını da kapsar.
+
+**Çalışma yaklaşımı:** Referanstaki tanıdık controller/service/DTO akışını esas al; mevcut ihtiyacı karşılayan açık metotlarla ilerle. Gelecekte gerekebilir diye adapter/stub/factory veya ek model katmanları kurma. Gerçek bir ayrım gerektiğinde somut gerekçesini kısa anlat. Bu geri bildirim mevcut katman/DTO sınırlarının kaldırılması veya tüm uygulamanın yeniden yazılması talimatı değildir.
 
 ## 2026-11-07 — Kullanıcının kod yazımı referansı
 
