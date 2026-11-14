@@ -1,6 +1,18 @@
-# Git görünürlüğü — uygulanan ilk adım ve kalan kapsam
+# Git görünürlüğü — GitHub bağlantıları ve kalan kapsam
 
-Güncelleme: **2026-11-13 — Europe/Istanbul**. GitHub branch ve commit geçmişi için ilk uygulama adımı eklendi. Yerel Git ve çalışan Docker sürümünün metadata bağlantısı henüz uygulanmadı. Aşağıdaki geniş kapsamın tamamı bitmiş sayılmaz.
+Güncelleme: **2026-11-14 — Europe/Istanbul**. GitHub branch/commit okumasına kayıtlı hesap/token bağlantıları ve proje bazında seçim eklendi. Kullanıcı bu çalışmanın kapsamını GitHub bağlantıları olarak seçti; yerel Git ve çalışan Docker sürümünün metadata bağlantısı sonraya kaldı. Aşağıdaki geniş kapsamın tamamı bitmiş sayılmaz.
+
+## 14 Kasım — Kayıtlı GitHub bağlantıları
+
+Proje ekleme/düzenleme formu iki adımdır: GitHub bağlantısı, ardından proje bilgileri. Bağlantı listesinde GitHub'dan doğrulanan hesap adı ve kullanıcının verdiği bağlantı adı görünür. Yeni token eklenebilir; açık depolar için tokensız devam edilebilir. Aynı hesabın farklı tokenları ayrı kayıtlar olabilir ve bir kayıt birkaç projede seçilebilir.
+
+`GET/POST /api/github-connections` ve `PUT/DELETE /api/github-connections/{id}` mevcut ADMIN oturumu ve CSRF korumasıyla çalışır. Yeni/yenilenen token `GET https://api.github.com/user` ile doğrulanır. Yanıtlarda yalnız `id`, `name`, `accountLogin` bulunur. Token yenilenirken GitHub kullanıcı kimliği aynı kalmalıdır; yalnız hesap adının değişmiş olması yenilemeyi engellemez. Boş tokenla güncelleme mevcut tokenı korur. Kullanılan bağlantı 409 ile silinemez; foreign key eşzamanlı silme yarışına karşı da korur.
+
+V4 migration'ı bağlantı tablosunu ve projeye nullable `github_connection_id` alanını ekler; mevcut projeleri veya önceki migration'ları değiştirmez. `ProjectRequest/Response` yalnız `githubConnectionId` taşır. Seçili bağlantı varsa yeni projede veya depo/bağlantı değişince `/branches?per_page=1` üzerinden okuma erişimi kontrol edilir. Diğer profil alanlarını değiştirmek yeni bir GitHub doğrulaması gerektirmez. GitHub hata verirse hatalı proje kaydı yazılmaz; tokenlı istek anonim olarak tekrar denenmez.
+
+`GitHubConnectionServiceImpl` kayıt, hesap doğrulama ve şifreli token saklamadan sorumludur. Mevcut `GitServiceImpl` proje kimliğiyle seçili bağlantıyı bulup tokenı yalnız backend içinde kullanır. HTTP istekleri mevcut Java `HttpClient` ile sabit `api.github.com` hedefine yapılır; yönlendirme izlenmez. Token DB'de Spring Security AES-GCM ile, kurulumun `OPSBRIDGE_TOKEN_ENCRYPTION_KEY` anahtarıyla şifrelenir. Anahtar üretimi/yedekleme ve eski `GITHUB_TOKEN` ayarından geçiş [README'dedir](../README.md#github-geçmişini-kullanma). Bağlantı kaydı proje formu iptal edilse de kalır.
+
+İlk uygulamada genel adapter, credential framework'ü, OAuth/GitHub App akışı veya ek bağımlılık eklenmedi. Branch/commit geçmişi SQL'e kopyalanmaz. Gerçek doğrulamalar ve canlı sistem sınırları [.wiki/STATUS.md](../.wiki/STATUS.md) içindedir.
 
 ## 13 Kasım — GitHub'dan branch ve commit okuma
 
@@ -14,7 +26,7 @@ Kullanıcı, [paylaştığı yazıdaki](<../javada dockerda çalışan uygulaman
 
 Örnek: `GET /api/projects/{id}/git?branch=feature%2Fgit&page=1&branchPage=1`. `branch` verilmezse GitHub'ın o sayfada döndürdüğü ilk branch seçilir; `main` varsayılmaz. İki liste de 20 kayıtla sayfalanır; devam bilgisi GitHub'ın `Link` header'ından alınır. Branch geçmişi ayrı bir SQL tablosuna kopyalanmaz.
 
-`GitHubConfig` yalnızca bağlantı zaman aşımı ayarlanmış `HttpClient` nesnesini oluşturur. Böylece testlerde aynı nesnenin yerine taklit HTTP yanıtları verilebilir. Token isteğe bağlı `GITHUB_TOKEN` ortam değişkeninden okunur ve tarayıcıya gönderilmez. Proje adresi yalnızca HTTPS `github.com/kullanici/depo` biçiminde kabul edilir; istek hedefi sabit `api.github.com` adresidir ve yönlendirmeler takip edilmez.
+13 Kasım ilk sürümünde token isteğe bağlı `GITHUB_TOKEN` ortam değişkeninden okunuyordu; 14 Kasım'da yukarıdaki kayıtlı bağlantı düzenine geçildi. `GitHubConfig`, zaman aşımı ayarlı `HttpClient` ve şifreleme nesnesini oluşturur. Testlerde aynı HTTP istemcisine taklit yanıtlar verilebilir. Proje adresi yalnızca HTTPS `github.com/kullanici/depo` biçiminde kabul edilir; istek hedefi sabit `api.github.com` adresidir ve yönlendirmeler takip edilmez.
 
 Pasif proje, hatalı repository adresi ve geçersiz sayfa için 400; bulunamayan proje için 404 döner. GitHub'ın erişim, limit, bağlantı veya JSON hataları açıklayıcı mesajla 502 döner; GitHub'ın 401 yanıtı OpsBridge oturumunu kapatmaz. Arayüz istek değişince eski sonucu temizler; iptal edilmiş isteğin geç gelen yanıtını göstermez. **Yenile**, iki listeyi de ilk sayfadan açar.
 

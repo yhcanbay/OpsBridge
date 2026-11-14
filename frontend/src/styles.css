@@ -17,7 +17,8 @@ body {
 }
 
 button,
-input {
+input,
+.github-connection-selector select {
   font: inherit;
 }
 
@@ -80,7 +81,8 @@ h4 {
   font-size: 14px;
 }
 
-input:not([type='checkbox']) {
+input:not([type='checkbox']),
+.github-connection-selector select {
   width: 100%;
   border: 1px solid #d5dee4;
   border-radius: 7px;
@@ -90,7 +92,8 @@ input:not([type='checkbox']) {
   outline: none;
 }
 
-input:focus {
+input:focus,
+.github-connection-selector select:focus {
   border-color: #24887c;
   box-shadow: 0 0 0 3px #24887c18;
 }
@@ -971,7 +974,8 @@ small {
   font-weight: 600;
 }
 
-.field input {
+.field input,
+.field select {
   font-weight: 400;
   font-size: 12px;
 }
@@ -1375,4 +1379,32 @@ small {
   .dialog-header h2 {
     font-size: 19px;
   }
+}
+.project-fields {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.form-step {
+  font-weight: 600;
+}
+
+.connection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.connection-editor {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
 }

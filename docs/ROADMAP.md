@@ -1,6 +1,6 @@
 # OpsBridge — vize ve devam planı
 
-Güncelleme: **2026-11-13 — Europe/Istanbul**.
+Güncelleme: **2026-11-14 — Europe/Istanbul**.
 
 Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık DevSecOps Proje Planı 1.md>) mevcut kaynaklar ve kullanıcı açıklamalarına göre güncellenmiş devam önerisidir. İlk plan tarihsel kaynak olarak korunur. Planlanan işler tamamlanmış özellik olarak değerlendirilmez.
 
@@ -17,7 +17,7 @@ Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık Dev
 
 ## Şu anda neredeyiz?
 
-**13 Kasım itibarıyla OpsBridge uygulama temeli ve Sozluk_Uygulamasi yazımı mevcut. Kullanıcının öğrendiği `HttpClient` örneğiyle GitHub branch ve commit geçmişi için ilk ekran/API adımı eklendi. Yerel Git, çalışan Docker sürümünün build metadatası ve Jenkins/Docker/health bağlantıları açık. Güncel test ve canlı doğrulama kanıtları STATUS'ta tutulur; URL/HTTPS yayını son aşamada yapılacak.**
+**14 Kasım itibarıyla GitHub branch/commit ekranına kayıtlı hesap/token bağlantıları, iki adımlı proje formu ve proje bazında token seçimi eklendi. Kullanıcı bu çalışmada GitHub bağlantıları kapsamını seçti; yerel Git ve çalışan Docker sürümünün build metadatası sonraya kaldı. Jenkins/Docker/health bağlantıları açık. Güncel test ve canlı doğrulama kanıtları STATUS'ta tutulur; URL/HTTPS yayını son aşamada yapılacak.**
 
 5 Kasım kaynak incelemesinde OpsBridge HEAD'i `47313af`, Personal_Task_App HEAD'i `faae3d0` idi; bunlar tarihsel kayıtlardır. Kullanıcı, kullandığı Jenkins'in **Windows üzerinde `localhost:8081`** olduğunu doğruladı; o günkü salt okunur job incelemesinde `taskapp-cicd`, `*/main` ve `Jenkinsfile` belirlendi. 7 Kasım'da referans Jenkinsfile yeniden okundu: frontend test/lint, feature/PR ayrımı ve deploy branch koşulu yok. Kimlik doğrulanmış API, webhook/ngrok üzerinden otomatik tetikleme ve güncel başarılı deployment ayrıca doğrulanmadı. Referans uygulamanın canlı kurulum kanıtı açık kaldığından 1. haftanın tamamı bitmiş sayılmaz.
 
@@ -28,12 +28,12 @@ Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık Dev
 | Spring Boot–React–PostgreSQL temeli | Mevcut; kaynaklar ve kurulum belgeleri hazır |
 | ADMIN girişi, session/CSRF, profil CRUD | Mevcut; 5 Kasım'da Docker/Nginx üzerinden gerçek Chrome ile giriş/çıkış ve profil ekleme–düzenleme–silme doğrulandı |
 | Katmanlar, DTO/mapper, Router/Axios, migration'lar | Mevcut; 7 Kasım'da Sozluk_Uygulamasi yazımına uyarlandı: controller/service arayüzleri ve impl sınıfları, Lombok DTO, açık React form alanları |
-| Otomatik kontroller | 13 Kasım GitHub adımında Maven verify ile 44 backend testi ve jar; 18 frontend testi, Prettier kontrolü ve üretim build'i başarılı. GitHub yanıtları testlerde taklit edilir; canlı doğrulama sınırları STATUS'ta |
+| Otomatik kontroller | 14 Kasım'da Maven verify H2 ve PostgreSQL 16 üzerinde 55 backend testi; 25 frontend testi, Prettier kontrolü ve üretim build'i başarılı. GitHub yanıtları testlerde taklit edilir; canlı doğrulama sınırları STATUS'ta |
 | OpsBridge Docker kurulumu ve gerçek tarayıcı akışı | 5 Kasım'da üç servis, DB healthy/health UP, Java 21, giriş/CRUD/doğrudan URL/dar ekran ve yeniden başlatma sonrası kalıcılık doğrulandı. 7 Kasım kaynak refaktörü yeniden deploy edilmedi; yeni kodun canlı tarayıcı kanıtı yok |
 | Personal_Task_App temiz kurulum ve gerçek Jenkins bağlantısı | Kurulum denemesi kullanıcı testi nedeniyle iptal edildi. Yerel Jenkins/job/branch ve mevcut Compose label/DB volume'u belirlendi; başarılı deployment/API/ağ doğrulaması açık |
 | 2. haftanın pipeline iyileştirmeleri | Referans kaynaklarda lint aşaması, JUnit yayınlama, commit/build image kimliği, özel label'lar ve Actuator health eksik |
 | OpsBridge canlı veri kartları | Henüz yok; 11 Kasım'da geçici adapter/stub yapısı kaldırıldı. Başlangıç durumlarını doğrudan `IntegrationServiceImpl` üretiyor |
-| GitHub geçmişi | 13 Kasım'da branch/commit API ve ekranı eklendi; her iki liste sayfalanır. Yerel Git ve çalışan sürüm bağlantısı henüz yok; doğrulama ayrıntıları STATUS'ta |
+| GitHub geçmişi | Sayfalı branch/commit API ve ekranı, kayıtlı hesap/token yönetimi ve proje bazında seçim mevcut. Yerel Git ve çalışan sürüm bağlantısı henüz yok; doğrulama ayrıntıları STATUS'ta |
 | Build tetikleme, queue/build eşlemesi, işlem geçmişi | Henüz yok |
 | Çoklu roller, tarama, rapor ve security gate | Henüz yok; mevcut ADMIN/CSRF/environment temeli bu teslimlerin tamamlandığı anlamına gelmez |
 

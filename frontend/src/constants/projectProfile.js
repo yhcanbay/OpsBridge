@@ -9,6 +9,7 @@ export const CAPABILITY_LABELS = {
 export const EMPTY_PROJECT = {
     name: '',
     repositoryUrl: '',
+    githubConnectionId: null,
     environment: 'local',
     jenkinsBaseUrlRef: '',
     jenkinsJobPath: '',

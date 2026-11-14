@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.yhcanbay.opsbridge.dto.response.GitHistoryResponse;
 import com.yhcanbay.opsbridge.entity.ProjectProfile;
@@ -33,6 +32,7 @@ import com.yhcanbay.opsbridge.exception.GitHubException;
 import com.yhcanbay.opsbridge.exception.ProjectNotFoundException;
 import com.yhcanbay.opsbridge.repository.ProjectRepository;
 import com.yhcanbay.opsbridge.service.impl.GitServiceImpl;
+import com.yhcanbay.opsbridge.service.IGitHubConnectionService;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -43,12 +43,14 @@ class GitServiceTest {
     private HttpClient httpClient;
     private GitServiceImpl gitService;
     private ProjectProfile project;
+    private IGitHubConnectionService connectionService;
 
     @BeforeEach
     void setUp() {
         projectRepository = mock(ProjectRepository.class);
         httpClient = mock(HttpClient.class);
-        gitService = new GitServiceImpl(projectRepository, httpClient, new ObjectMapper());
+        connectionService = mock(IGitHubConnectionService.class);
+        gitService = new GitServiceImpl(projectRepository, httpClient, new ObjectMapper(), connectionService);
 
         project = new ProjectProfile();
         project.setRepositoryUrl("https://github.com/example/task-app.git/");
@@ -58,7 +60,9 @@ class GitServiceTest {
 
     @Test
     void readsSelectedBranchHistoryAndPaginationWithoutExposingToken() throws Exception {
-        ReflectionTestUtils.setField(gitService, "gitHubToken", "test-only-token");
+        UUID connectionId = UUID.randomUUID();
+        project.setGithubConnectionId(connectionId);
+        when(connectionService.getToken(connectionId)).thenReturn("test-only-token");
         String nextLink = "<https://api.github.com/repos/example/task-app/branches?page=3>; rel=\"next\"";
         HttpResponse<String> branches = response(200, "[{\"name\":\"feature/git & ui\"}]",
                 Map.of("Link", List.of(nextLink)));
@@ -211,7 +215,9 @@ class GitServiceTest {
 
     @Test
     void invalidTokenDoesNotLeakIntoErrorMessages() {
-        ReflectionTestUtils.setField(gitService, "gitHubToken", "private-token\ninvalid-header");
+        UUID connectionId = UUID.randomUUID();
+        project.setGithubConnectionId(connectionId);
+        when(connectionService.getToken(connectionId)).thenReturn("private-token\ninvalid-header");
 
         assertThatThrownBy(() -> gitService.getGitHistory(projectId, "", 1, 1))
                 .isInstanceOf(GitHubException.class)

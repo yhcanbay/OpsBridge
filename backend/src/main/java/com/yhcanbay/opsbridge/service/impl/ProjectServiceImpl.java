@@ -2,6 +2,7 @@ package com.yhcanbay.opsbridge.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import com.yhcanbay.opsbridge.entity.ProjectProfile;
 import com.yhcanbay.opsbridge.exception.ProjectNotFoundException;
 import com.yhcanbay.opsbridge.mapper.ProjectMapper;
 import com.yhcanbay.opsbridge.repository.ProjectRepository;
+import com.yhcanbay.opsbridge.service.IGitService;
 import com.yhcanbay.opsbridge.service.IProjectService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class ProjectServiceImpl implements IProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final IGitService gitService;
 
     @Override
     public List<ProjectResponse> getAllProjects() {
@@ -48,6 +51,10 @@ public class ProjectServiceImpl implements IProjectService {
     @Override
     @Transactional
     public ProjectResponse saveProject(ProjectRequest projectRequest) {
+        if (projectRequest.getGithubConnectionId() != null) {
+            gitService.validateRepositoryAccess(
+                    projectRequest.getRepositoryUrl().trim(), projectRequest.getGithubConnectionId());
+        }
         ProjectProfile project = projectMapper.createEntity(projectRequest);
         ProjectProfile savedProject = projectRepository.saveAndFlush(project);
         return projectMapper.toDto(savedProject);
@@ -57,6 +64,13 @@ public class ProjectServiceImpl implements IProjectService {
     @Transactional
     public ProjectResponse updateProject(UUID projectId, ProjectRequest projectRequest) {
         ProjectProfile project = findProjectById(projectId);
+        boolean repositoryChanged = !project.getRepositoryUrl().equals(projectRequest.getRepositoryUrl().trim());
+        boolean connectionChanged = !Objects.equals(
+                project.getGithubConnectionId(), projectRequest.getGithubConnectionId());
+        if (projectRequest.getGithubConnectionId() != null && (repositoryChanged || connectionChanged)) {
+            gitService.validateRepositoryAccess(
+                    projectRequest.getRepositoryUrl().trim(), projectRequest.getGithubConnectionId());
+        }
         projectMapper.updateEntity(projectRequest, project);
 
         // updatedAt, yanıt oluşturulmadan önce veritabanına yazılırken yenilenir.

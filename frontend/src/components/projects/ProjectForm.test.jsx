@@ -1,7 +1,22 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../api/ApiError.js'
 import ProjectForm from './ProjectForm.jsx'
+import { githubConnectionService } from '../../services/githubConnectionService.js'
+
+vi.mock('../../services/githubConnectionService.js', () => ({
+    githubConnectionService: {
+        getAllConnections: vi.fn(),
+        saveConnection: vi.fn(),
+        updateConnection: vi.fn(),
+        deleteConnection: vi.fn()
+    }
+}))
+
+beforeEach(() => {
+    vi.resetAllMocks()
+    githubConnectionService.getAllConnections.mockResolvedValue([])
+})
 
 beforeAll(() => {
     // jsdom, tarayıcının dialog açma ve kapatma metotlarını çalıştırmaz.
@@ -15,7 +30,11 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
-function fillRequiredFields() {
+async function fillRequiredFields() {
+    await waitFor(() =>
+        expect(screen.getByRole('button', { name: 'Yeni bağlantı ekle' }).disabled).toBe(false)
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Devam et' }))
     fireEvent.change(screen.getByLabelText(/Proje adı/), { target: { value: 'Yeni proje' } })
     fireEvent.change(screen.getByLabelText(/Repository URL/), {
         target: { value: 'https://example.com/project' }
@@ -26,7 +45,7 @@ describe('proje profili formu', () => {
     it('alanları, yetenek seçimlerini ve aktif durumunu kaydeder', async () => {
         const onSave = vi.fn().mockResolvedValue({})
         render(<ProjectForm onSave={onSave} onClose={vi.fn()} />)
-        fillRequiredFields()
+        await fillRequiredFields()
 
         fireEvent.click(screen.getByLabelText('Build görüntüleme'))
         fireEvent.click(screen.getByLabelText('HTTP health'))
@@ -38,6 +57,7 @@ describe('proje profili formu', () => {
         expect(onSave).toHaveBeenCalledWith({
             name: 'Yeni proje',
             repositoryUrl: 'https://example.com/project',
+            githubConnectionId: null,
             environment: 'local',
             jenkinsBaseUrlRef: '',
             jenkinsJobPath: '',
@@ -66,6 +86,7 @@ describe('proje profili formu', () => {
         }
         render(<ProjectForm project={project} onSave={onSave} onClose={vi.fn()} />)
 
+        fireEvent.click(screen.getByRole('button', { name: 'Devam et' }))
         expect(screen.getByLabelText(/Proje adı/).value).toBe('Mevcut proje')
         expect(screen.getByLabelText('Jenkins job yolu').value).toBe('')
         expect(screen.getByLabelText('Build görüntüleme').checked).toBe(true)
@@ -90,7 +111,7 @@ describe('proje profili formu', () => {
             )
         const onClose = vi.fn()
         render(<ProjectForm onSave={onSave} onClose={onClose} />)
-        fillRequiredFields()
+        await fillRequiredFields()
         fireEvent.click(screen.getByRole('button', { name: 'Profili kaydet' }))
 
         expect(await screen.findByRole('alert')).toHaveProperty(
@@ -114,7 +135,7 @@ describe('proje profili formu', () => {
         )
         const onClose = vi.fn()
         render(<ProjectForm onSave={onSave} onClose={onClose} />)
-        fillRequiredFields()
+        await fillRequiredFields()
         fireEvent.click(screen.getByRole('button', { name: 'Profili kaydet' }))
 
         const dialog = screen.getByRole('dialog')

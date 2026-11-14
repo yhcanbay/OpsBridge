@@ -18,6 +18,7 @@ public class ProjectMapper {
     public void updateEntity(ProjectRequest request, ProjectProfile project) {
         project.setName(request.getName().trim());
         project.setRepositoryUrl(request.getRepositoryUrl().trim());
+        project.setGithubConnectionId(request.getGithubConnectionId());
         project.setEnvironment(request.getEnvironment().trim());
         project.setJenkinsBaseUrlRef(normalizeOptionalText(request.getJenkinsBaseUrlRef()));
         project.setJenkinsJobPath(normalizeOptionalText(request.getJenkinsJobPath()));
@@ -32,6 +33,7 @@ public class ProjectMapper {
                 .id(project.getId())
                 .name(project.getName())
                 .repositoryUrl(project.getRepositoryUrl())
+                .githubConnectionId(project.getGithubConnectionId())
                 .environment(project.getEnvironment())
                 .jenkinsBaseUrlRef(project.getJenkinsBaseUrlRef())
                 .jenkinsJobPath(project.getJenkinsJobPath())

@@ -2,6 +2,7 @@ package com.yhcanbay.opsbridge.dto.request;
 
 import java.net.URI;
 import java.util.Set;
+import java.util.UUID;
 
 import com.yhcanbay.opsbridge.enums.Capability;
 
@@ -29,6 +30,8 @@ public class ProjectRequest {
     @NotBlank
     @Size(max = 500)
     private String repositoryUrl;
+
+    private UUID githubConnectionId;
 
     @NotBlank
     @Pattern(regexp = "[a-z][a-z0-9_-]{0,29}")

@@ -2,6 +2,24 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-14 — Yalnızca tasarım kapsamında Jenkins ayrıntı sayfası
+
+Kullanıcı, `Jenkins özellikleri.md` belgesindeki özellikleri ileride projeye eklemeyi düşündüğünü belirtti ve projelerden açılacak Jenkins ayrıntı ekranının tasarımını istedi. Bu tur için backend, mevcut kodların düzenlenmesi ve tıklama/yönlendirme akışı açıkça kapsam dışındadır. Jenkinsfile veya gerçek Jenkins bağlantısı eklenmedi.
+
+Mevcut görsel dile uygun bağımsız `JenkinsDetailsPage.jsx`, kendi CSS'i ve önizleme için iki yeni giriş dosyası eklendi. Son/önceki tamamlanmış build ayrımı, pipeline aşamaları, başarısız aşama/konsol, son 10 build, branch/build commit ayrımı, test raporu ve veri zamanı tasarlandı. Yedi örnek durum menüden seçilebilir; rapor yokken sıfır hata sonucu çıkarılmaz, erişim sorunu build başarısızlığı olarak gösterilmez. Filtre, build seçimi ve örnek bağlantı pencereleri yalnızca tarayıcı içindedir. Router ve backend bağlantısı yapılmadı.
+
+25 frontend testi, biçim kontrolü, mevcut uygulamanın build'i ve bağımsız önizleme build'i geçti. Playwright/Chrome ile yedi durumun dokuz genişlikte toplam 63 kontrolü ve yerel etkileşimleri doğrulandı; JavaScript hatası veya sayfa taşması kalmadı. Önizleme sırasında uygulamadan API/dış kaynak isteği çıkmadı; host güvenlik yazılımının tarayıcıya eklediği istekler ayrıca ayırt edildi. Önizleme adresi ve devam sınırları STATUS'tadır. Çalışma alanında eşzamanlı başka değişiklikler gözlendi ve korundu. Bu görevde mevcut uygulama kaynaklarına yazılmadı; backend testi, canlı Jenkins/Docker değişikliği veya commit/push yapılmadı. Tasarımın kullanıcı tarafından incelenmesi sonraki adımdır; entegrasyon henüz yetkilendirilmiş değildir.
+
+## 2026-11-14 — Kayıtlı GitHub hesap/token bağlantılarının uygulanması
+
+Kullanıcı önce proje bazında tokenların ayrılmasını sordu; ardından proje eklemede kayıtlı hesaplardan bağlantı seçimi veya yeni token ekleme akışını istedi. Plan görüşmesinde GitHub bağlantıları kapsamını, açık depolarda tokensız erişimi ve aynı formda bağlantı ekleme/yenileme/silme işlemlerini seçti. "Uygula" talimatıyla plan onaylandı. Yerel Git ve çalışan sürüm eşlemesi bu işin dışında, sonraya bırakıldı.
+
+V4 migration'ı şifreli GitHub bağlantı tablosunu ve nullable proje referansını ekledi. Mevcut katman düzeninde bağlantı CRUD API'si, GitHub `/user` ile hesap doğrulama, aynı hesapta token yenileme ve kullanılan bağlantıyı silme engeli eklendi. Git servisi projenin seçtiği tokenı kullanır; seçilmiş token başarısızsa anonim erişime düşmez. Yeni/bağlantısı değişen projelerde branch okuma izni doğrulanır; ilgisiz profil güncellemeleri dış istek yapmaz. Spring Security'nin mevcut AES-GCM desteği kullanıldı; yeni bağımlılık veya genel adapter/framework eklenmedi. Ortak `GITHUB_TOKEN` ayarı kaldırıldı. Yerel `.env` içine rastgele şifreleme anahtarı, diğer değerler korunarak eklendi; anahtar değeri hafızaya/loglara yazılmadı.
+
+React formu GitHub bağlantısı ve proje bilgileri olarak iki adıma ayrıldı. Bağlantılar hesap adı + bağlantı adıyla gösterilir; yeni kayıtta otomatik hesap seçilmez. Yeni token password alanında alınır, bağlantı kaydından sonra alandan temizlenir. Tokenlar proje isteğine veya liste yanıtlarına eklenmez. README, Git görünürlüğü, geliştirme/mimari rehberleri ve roadmap güncellendi.
+
+`mvn verify` H2 ve ayrı geçici PostgreSQL 16 üzerinde **55 test, 0 hata/başarısızlık** ile geçti; jar üretildi. V3→V4 ileri migration ve foreign key koruması ayrıca H2 üzerinde sınandı. Frontend **25 test**, Prettier, üretim build'i ve Compose config kontrolü geçti. Mevcut Playwright kurulumu/gerçek Chrome ile ayrı QA backend ve PostgreSQL üzerinde giriş, iki adımlı tokensız proje kaydı, hatalı tokenın GitHub'a gitmeden 400 ile reddi, form verilerinin korunması, 390px görünüm ve test projesinin silinmesi doğrulandı; JavaScript hatası yok. Tarayıcı kontrolünde branch geçmişi fixture ile verildi; gerçek token/özel depo doğrulaması yapılmadı. Test sonunda QA süreçleri kapatıldı, geçici container kaldırıldı ve 18082/15174 portlarının kapalı olduğu doğrulandı. Üretimdeki Compose, Personal_Task_App ve Jenkins değiştirilmedi; commit/push yapılmadı. Güncel devam sınırları STATUS'tadır.
+
 ## 2026-11-13 — Öğrenilen HttpClient örneğiyle GitHub okumasının uygulanması
 
 Kullanıcı, paylaştığı GitHub/build metadata yazısıyla konuyu yeni öğrendiğini, hocaya anlatabileceği sadelikte kod istediğini belirtti ve uygulamaya başlamamıza izin verdi. İlk uygulama adımı GitHub branch/commit görünümü olarak sınırlandı; önceki yerel depo hedefi iptal edilmedi. Kaynaktaki çok servisli tasarım önerisi uygulanmadı; mevcut controller → service → response DTO akışında Java `HttpClient`, `JsonNode`, ara değişkenler ve açık döngüler kullanıldı.

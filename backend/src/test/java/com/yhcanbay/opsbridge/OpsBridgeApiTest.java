@@ -192,7 +192,7 @@ class OpsBridgeApiTest {
         mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git"))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.detail").value(
-                        "GitHub token'ı geçersiz veya süresi dolmuş. Backend yapılandırmasını kontrol edin."));
+                        "GitHub token'ı geçersiz veya süresi dolmuş. Proje formundan bağlantının tokenını yenileyin."));
     }
 
     @SuppressWarnings("unchecked")

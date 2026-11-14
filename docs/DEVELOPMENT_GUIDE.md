@@ -1,6 +1,6 @@
 # OpsBridge geliştirme rehberi
 
-Araştırma: **2026-11-04**; son düzenleme: **2026-11-11 — Europe/Istanbul**.
+Araştırma: **2026-11-04**; son düzenleme: **2026-11-14 — Europe/Istanbul**.
 
 Kullanıcının açık tercihi: **az satır yerine anlaşılır kod**. Dosya adı, bulunduğu paket ve çağrı akışı üzerinden bir işin nerede yapıldığını takip edebilmek temel ölçüt. Bu rehberdeki teknoloji seçimleri bu projenin mevcut kapsamına aittir; her uygulama için tek doğru teknoloji listesi olduğu iddia edilmez.
 
@@ -9,6 +9,8 @@ Kullanıcının açık tercihi: **az satır yerine anlaşılır kod**. Dosya ad�
 **Çalışma modeli:** OpsBridge, izlenen uygulamayla aynı sunucuda ayrı servisler olarak çalışır. Uzak kullanıcı tarayıcıdan URL'ye admin girişi yapar; kaynak işlemlerini o sunucudaki backend yürütür. URL/HTTPS yayını en son yapılacak ayrı iştir. [Mimari ve kaynak sınırları](ARCHITECTURE.md).
 
 ## Spring Boot: katmanların sorumluluğu
+
+**14 Kasım — GitHub tokenlarının saklanması:** GitHub'a istek gönderirken asıl token gerektiği için admin parolasındaki BCrypt hash'i bu amaçla kullanılamaz. Mevcut Spring Security 7.0.8 içindeki `AesGcmBytesEncryptor` ile şifreleme kullanılır; yeni bağımlılık veya özel kriptografi eklenmez. 32 baytlık anahtar yalnız backend ortamında kalır, DB'de şifreli token bulunur. Bağlantı yanıtı `id/name/accountLogin`, proje ise yalnız bağlantı kimliği taşır. Yeni tokenın sahibi GitHub `/user`, seçilen projeye okuma erişimi `/branches` ile doğrulanır. Mevcut Java `HttpClient` yaklaşımı ve sabit GitHub hedefi korunur. [Spring Security Crypto](https://docs.spring.io/spring-security/reference/7.0/features/integrations/cryptography.html), [GitHub hesap doğrulama](https://docs.github.com/en/rest/users/users#get-the-authenticated-user), [branch okuma izinleri](https://docs.github.com/en/rest/branches/branches#list-branches). Akış ve API sözleşmesi [Git görünürlüğü belgesindedir](GIT_VISIBILITY.md).
 
 ```text
 com.yhcanbay.opsbridge

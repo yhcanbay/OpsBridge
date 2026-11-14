@@ -18,6 +18,7 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 - Proje profilinin aktifliği ve yeteneklerine göre üretilen Jenkins, Docker ve HTTP health bağlantı durumları.
 - React üzerinde giriş, proje arama/listeleme, profil düzenleme ve bağlantı durumları.
 - GitHub branch listesi ve seçilen branch'in sayfalanmış commit geçmişi; SHA, mesaj, yazar ve tarih.
+- Kayıtlı GitHub hesap/token bağlantıları; proje eklerken bağlantı seçimi, yeni token ekleme, yenileme ve kullanılmayan bağlantıyı silme.
 
 **Bu sürüm Jenkins/Docker/health verisi çekmez ve build başlatmaz.** Bağlantılar `NOT_CONNECTED`, yetenek tanımlanmamışsa `NOT_SUPPORTED`, profil pasifse `DISABLED` döner. “Aktif profil”, uygulamanın sağlıklı olduğu anlamına gelmez. `SECURITY_VIEW` tanımlanabilir; rapor ekranı henüz yoktur.
 
@@ -59,7 +60,11 @@ Kod yazımı kullanıcının **Sozluk_Uygulamasi** projesini esas alır. Yerel r
 
 Aktif bir projenin profilinde `https://github.com/kullanici/depo` biçiminde repository adresi tanımlayın. Proje detayındaki **GitHub geçmişi** bölümünde branch seçin; branch'ler ve commit'ler 20'şer kayıtla sayfalanır. İlk açılışta dönen ilk branch seçilir. **Yenile** branch ve commit sayfalarını başa alır.
 
-Herkese açık depolar token olmadan okunabilir. Özel depolar için `.env` içine yalnızca ilgili depolarda **Contents: read** yetkisi olan `GITHUB_TOKEN` ekleyin. Token backend'de kalır. Docker'da `.env` veya kod değişikliğini uygulamak için servisleri yeniden oluşturun: `docker compose up -d --build`. Yerelde backend'i yeniden başlatın.
+**+ Proje ekle** formunda önce GitHub bağlantısını seçin. Kayıtlar `hesap adı — bağlantı adı` olarak gösterilir. **Yeni bağlantı ekle** ile bağlantıya bir ad ve GitHub tokenı girin; hesap adı backend tarafından GitHub'dan doğrulanır. Ardından **Devam et** ile proje bilgilerini doldurun. Açık depolar için **Tokensız devam et** seçilebilir. Özel depolarda ilgili depoya **Contents: read** izni veren bir fine-grained token kullanın.
+
+Aynı hesaba ait farklı tokenlar ayrı bağlantılar olarak kaydedilebilir; bir bağlantıyı birkaç proje kullanabilir. Proje kaydedilirken seçili bağlantının depodaki branch'leri okuyabildiği kontrol edilir. Formdaki **Bağlantıyı düzenle**, token boş bırakılırsa yalnız adı değiştirir; yeni token aynı hesaba ait olmalıdır. Token yenilemesi bu bağlantıyı kullanan bütün projelere uygulanır. Projelerin kullandığı bağlantı silinemez; önce projelerin bağlantısını değiştirin. Bağlantı kaydı proje kaydından bağımsızdır: proje formunu iptal etmek, az önce eklenen bağlantıyı silmez.
+
+Tokenlar veritabanında AES-GCM ile şifrelenir. Liste yanıtında veya proje yanıtında token bulunmaz. Tarayıcı tokenı yalnız ekleme/yenileme isteğinde backend'e gönderir; kalıcı tarayıcı depolamasına yazmaz. `GITHUB_TOKEN` ortam değişkeni artık kullanılmaz; mevcut tokenı panelden bir bağlantı olarak ekleyin. Mevcut projeler migration sonrasında bağlantısız kalır; özel depolar için profil düzenlemeden bağlantı seçin.
 
 Bu bölüm GitHub verisini gösterir. Sunucudaki gönderilmemiş commit'ler ve çalışan Docker sürümünün commit'i henüz okunmaz. Çalışan sürümü belirlemek için izlenen uygulamanın build sırasında kaydettiği metadata ayrıca bağlanmalıdır. Kod akışının kısa açıklaması [Git görünürlüğü belgesinde](docs/GIT_VISIBILITY.md).
 
@@ -77,6 +82,18 @@ notepad .env
 ```
 
 `.env` içindeki `POSTGRES_PASSWORD` ve `OPSBRIDGE_ADMIN_PASSWORD` değerlerini kendiniz belirleyin. Örnek `replace-with-...` admin parolasıyla backend başlatılmaz. `.env` Git tarafından yok sayılır; gerçek bilgileri `.env.example` içine yazmayın.
+
+`OPSBRIDGE_TOKEN_ENCRYPTION_KEY` için aşağıdaki komutla 32 baytlık rastgele anahtar üretin ve çıktıyı `.env` içindeki bu alana yazın. Örnek anahtarla veya boş anahtarla backend başlatılmaz.
+
+```powershell
+$githubKeyBytes = New-Object byte[] 32
+$githubKeyGenerator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$githubKeyGenerator.GetBytes($githubKeyBytes)
+[Convert]::ToBase64String($githubKeyBytes)
+$githubKeyGenerator.Dispose()
+```
+
+Bu anahtarı yeniden başlatmalarda koruyun ve veritabanı yedeğinden ayrı, güvenli biçimde yedekleyin. Anahtar kaybolursa kayıtlı tokenlar çözülemez; bağlantıların tokenlarını yeniden girmeniz gerekir. Anahtar değişikliği otomatik token taşıma işlemi yapmaz. Docker'da yeni kod/yapılandırma için servislerin yeniden oluşturulması gerekir; yerelde backend yeniden başlatılır.
 
 ```powershell
 docker compose up -d --build

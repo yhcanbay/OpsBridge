@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.yhcanbay.opsbridge.dto.response.GitCommitResponse;
@@ -26,6 +25,7 @@ import com.yhcanbay.opsbridge.exception.GitRequestException;
 import com.yhcanbay.opsbridge.exception.ProjectNotFoundException;
 import com.yhcanbay.opsbridge.repository.ProjectRepository;
 import com.yhcanbay.opsbridge.service.IGitService;
+import com.yhcanbay.opsbridge.service.IGitHubConnectionService;
 
 import lombok.RequiredArgsConstructor;
 import tools.jackson.core.JacksonException;
@@ -41,9 +41,16 @@ public class GitServiceImpl implements IGitService {
     private final ProjectRepository projectRepository;
     private final HttpClient gitHubHttpClient;
     private final ObjectMapper objectMapper;
+    private final IGitHubConnectionService connectionService;
 
-    @Value("${opsbridge.github.token:}")
-    private String gitHubToken;
+    @Override
+    public void validateRepositoryAccess(String repositoryUrl, UUID connectionId) {
+        String repositoryPath = getRepositoryPath(repositoryUrl);
+        String token = connectionService.getToken(connectionId);
+        HttpResponse<String> response = sendGitHubRequest(
+                "https://api.github.com/repos/" + repositoryPath + "/branches?per_page=1", token);
+        readArray(response.body());
+    }
 
     @Override
     public GitHistoryResponse getGitHistory(UUID projectId, String branch, int page, int branchPage) {
@@ -63,9 +70,13 @@ public class GitServiceImpl implements IGitService {
 
         String repositoryPath = getRepositoryPath(project.getRepositoryUrl());
         String apiUrl = "https://api.github.com/repos/" + repositoryPath;
+        String gitHubToken = null;
+        if (project.getGithubConnectionId() != null) {
+            gitHubToken = connectionService.getToken(project.getGithubConnectionId());
+        }
 
         HttpResponse<String> branchResponse = sendGitHubRequest(
-                apiUrl + "/branches?per_page=" + PAGE_SIZE + "&page=" + branchPage);
+                apiUrl + "/branches?per_page=" + PAGE_SIZE + "&page=" + branchPage, gitHubToken);
         JsonNode branchNodes = readArray(branchResponse.body());
         List<String> branches = new ArrayList<>();
 
@@ -91,7 +102,7 @@ public class GitServiceImpl implements IGitService {
             String encodedBranch = URLEncoder.encode(selectedBranch, StandardCharsets.UTF_8)
                     .replace("+", "%20");
             HttpResponse<String> commitResponse = sendGitHubRequest(
-                    apiUrl + "/commits?sha=" + encodedBranch + "&per_page=" + PAGE_SIZE + "&page=" + page);
+                    apiUrl + "/commits?sha=" + encodedBranch + "&per_page=" + PAGE_SIZE + "&page=" + page, gitHubToken);
             JsonNode commitNodes = readArray(commitResponse.body());
             List<GitCommitResponse> commits = new ArrayList<>();
 
@@ -146,7 +157,7 @@ public class GitServiceImpl implements IGitService {
         return repositoryPath;
     }
 
-    private HttpResponse<String> sendGitHubRequest(String url) {
+    private HttpResponse<String> sendGitHubRequest(String url, String gitHubToken) {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .timeout(Duration.ofSeconds(15))
@@ -159,7 +170,7 @@ public class GitServiceImpl implements IGitService {
             try {
                 builder.header("Authorization", "Bearer " + gitHubToken);
             } catch (IllegalArgumentException exception) {
-                throw new GitHubException("GitHub token biçimi geçersiz. Backend yapılandırmasını kontrol edin.");
+                throw new GitHubException("GitHub token biçimi geçersiz. Proje formundan bağlantının tokenını yenileyin.");
             }
         }
 
@@ -184,7 +195,7 @@ public class GitServiceImpl implements IGitService {
             return;
         }
         if (status == 401) {
-            throw new GitHubException("GitHub token'ı geçersiz veya süresi dolmuş. Backend yapılandırmasını kontrol edin.");
+            throw new GitHubException("GitHub token'ı geçersiz veya süresi dolmuş. Proje formundan bağlantının tokenını yenileyin.");
         }
         if (status == 429 || (status == 403
                 && response.headers().firstValue("X-RateLimit-Remaining").orElse("").equals("0"))) {

@@ -88,7 +88,7 @@ Yerel commit tek başına bu uzak otomasyonu tetiklemez. Hangi branch/olayın ha
 
 ## Mevcut durum ve sonraya bırakılan yayınlama
 
-Kaynaklardaki Compose, OpsBridge servislerini aynı host'ta çalıştırır; host portları `127.0.0.1` ile sınırlıdır. Mevcut ADMIN session/CSRF ve profil CRUD akışı vardır. 13 Kasım'da GitHub branch ve commit okuma kodu eklendi; canlı GitHub/Docker doğrulama sınırları STATUS'ta tutulur. Yerel Git, çalışan sürüm metadatası ve Jenkins/Docker/health bağlantıları henüz yoktur. Mevcut geliştirme makinesi bu sunucu modelinin yerel deneme ortamıdır.
+Kaynaklardaki Compose, OpsBridge servislerini aynı host'ta çalıştırır; host portları `127.0.0.1` ile sınırlıdır. Mevcut ADMIN session/CSRF ve profil CRUD akışı vardır. 13 Kasım'da GitHub branch/commit okuması, 14 Kasım'da veritabanında şifreli GitHub bağlantıları ve proje bazında seçim eklendi. Şifreleme anahtarı backend ortam değişkeninde tutulur; tokenlar tarayıcıya geri gönderilmez. Canlı GitHub/Docker doğrulama sınırları STATUS'ta tutulur. Yerel Git, çalışan sürüm metadatası ve Jenkins/Docker/health bağlantıları henüz yoktur. Mevcut geliştirme makinesi bu sunucu modelinin yerel deneme ortamıdır.
 
 Yayınlama aşamasında tek dış URL üzerinden arayüz ve `/api` erişimi, HTTPS ve buna uygun oturum cookie/proxy ayarları hazırlanır. Veritabanı ve Docker erişimi sunucu içinde kalır. Alan adı ve yayınlama aracı o aşamada seçilir. Kabul kanıtı, başka bir bilgisayardan URL'yi açıp admin girişi yapmak, yetkisiz yönetim isteklerinin reddedildiğini ve işlemlerin sunucudaki doğru kaynaklara ulaştığını doğrulamaktır.
 

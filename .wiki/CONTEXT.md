@@ -1,6 +1,12 @@
 # Kullanıcı ve ürün bağlamı
 
-Son güncelleme: **2026-11-13 — Europe/Istanbul**
+Son güncelleme: **2026-11-14 — Europe/Istanbul**
+
+## 2026-11-14 — Proje bazında kayıtlı GitHub bağlantısı
+
+**Kullanıcı isteği ve onaylanan kararlar:** Kullanıcı, yeni proje eklerken veritabanında tokenı kayıtlı GitHub hesaplarının önerilmesini, mevcut bağlantının seçilebilmesini veya yeni token girilebilmesini istedi. Plan sorularında kapsamı **GitHub bağlantıları** olarak seçti; yerel repo/gönderilmemiş commit ve çalışan Docker sürümü eşlemesi sonraya kaldı. Açık depolarda tokensız erişimi ve bağlantı ekleme/yenileme/kullanılmayanı silme işlemlerinin aynı proje formunda bulunmasını seçti. Hazırlanan planın tamamını "uygula" diyerek onayladı.
+
+**Uygulanan model:** Bağlantı kayıtları projelerden ayrıdır; aynı hesaba ait birden fazla token bulunabilir ve aynı bağlantı birden fazla projede kullanılabilir. Hesap adı GitHub'dan doğrulanır; seçili tokenın depoya erişimi proje kaydında ayrıca kontrol edilir. Token yenilemesi bağlantıyı kullanan bütün projelere uygulanır, kullanılan bağlantı silinmez. Token DB'de şifreli, şifreleme anahtarı backend ortamında tutulur; ortak `GITHUB_TOKEN` kullanımı kaldırıldı. Bu, genel Git hedefinin bütününün veya canlı entegrasyonların tamamlandığı anlamına gelmez. Gerçek doğrulama ve deployment sınırları STATUS'tadır.
 
 ## Kullanıcının anlattığı geçmiş ve amaç
 

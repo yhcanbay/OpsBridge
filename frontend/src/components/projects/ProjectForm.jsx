@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CAPABILITY_LABELS, EMPTY_PROJECT } from '../../constants/projectProfile.js'
+import GitHubConnectionSelector from './GitHubConnectionSelector.jsx'
 
 function ProjectForm({ project, onSave, onClose }) {
     const dialog = useRef(null)
@@ -7,6 +8,11 @@ function ProjectForm({ project, onSave, onClose }) {
     const [error, setError] = useState('')
     const [fieldErrors, setFieldErrors] = useState({})
     const [isSaving, setIsSaving] = useState(false)
+    const [step, setStep] = useState(1)
+    const [isConnectionBusy, setIsConnectionBusy] = useState(false)
+    const [isEditingConnection, setIsEditingConnection] = useState(false)
+    const savePending = useRef(false)
+    const isBusy = isSaving || isConnectionBusy
 
     useEffect(() => {
         const element = dialog.current
@@ -48,7 +54,7 @@ function ProjectForm({ project, onSave, onClose }) {
     function handleCancel(event) {
         event.preventDefault()
 
-        if (!isSaving) {
+        if (!isBusy) {
             onClose()
         }
     }
@@ -56,10 +62,15 @@ function ProjectForm({ project, onSave, onClose }) {
     async function handleSubmit(event) {
         event.preventDefault()
 
-        if (isSaving) {
+        if (savePending.current || isConnectionBusy || isEditingConnection) {
+            return
+        }
+        if (step === 1) {
+            setStep(2)
             return
         }
 
+        savePending.current = true
         setIsSaving(true)
         setError('')
         setFieldErrors({})
@@ -68,6 +79,7 @@ function ProjectForm({ project, onSave, onClose }) {
             const projectRequest = {
                 name: values.name,
                 repositoryUrl: values.repositoryUrl,
+                githubConnectionId: values.githubConnectionId,
                 environment: values.environment,
                 jenkinsBaseUrlRef: values.jenkinsBaseUrlRef,
                 jenkinsJobPath: values.jenkinsJobPath,
@@ -81,8 +93,22 @@ function ProjectForm({ project, onSave, onClose }) {
             setError(failure.message)
             setFieldErrors(failure.fields ?? {})
         } finally {
+            savePending.current = false
             setIsSaving(false)
         }
+    }
+
+    function handleConnectionChange(connectionId) {
+        setValues((currentValues) => ({ ...currentValues, githubConnectionId: connectionId }))
+    }
+
+    function handleNextStep() {
+        setStep(2)
+    }
+
+    function handlePreviousStep() {
+        setStep(1)
+        setError('')
     }
 
     return (
@@ -102,213 +128,237 @@ function ProjectForm({ project, onSave, onClose }) {
                         type="button"
                         className="icon-button"
                         aria-label="Formu kapat"
-                        disabled={isSaving}
+                        disabled={isBusy}
                         onClick={onClose}
                     >
                         ×
                     </button>
                 </header>
                 <div className="dialog-content">
-                    <p className="muted">
-                        Bir profil, projenin nerede olduğunu ve hangi bağlantıları desteklediğini
-                        tanımlar.
+                    <p className="form-step" role="status">
+                        {step === 1 ? '1 / 2 · GitHub bağlantısı' : '2 / 2 · Proje bilgileri'}
                     </p>
-                    <div className="form-grid">
-                        <label className="field">
-                            <span>
-                                Proje adı<span className="required"> *</span>
-                            </span>
-                            <input
-                                name="name"
-                                value={values.name ?? ''}
-                                onChange={handleChange}
-                                required
-                                maxLength={80}
-                                placeholder="Örn. Personal_Task_App"
-                                aria-invalid={Boolean(fieldErrors.name)}
-                                aria-describedby="name-hint"
-                            />
-                            {fieldErrors.name && (
-                                <small
-                                    id="name-hint"
-                                    className={fieldErrors.name ? 'field-error' : 'muted'}
-                                >
-                                    {fieldErrors.name}
-                                </small>
-                            )}
-                        </label>
-                        <label className="field">
-                            <span>
-                                Ortam<span className="required"> *</span>
-                            </span>
-                            <input
-                                name="environment"
-                                value={values.environment ?? ''}
-                                onChange={handleChange}
-                                required
-                                maxLength={30}
-                                pattern="[a-z][a-z0-9_-]{0,29}"
-                                aria-invalid={Boolean(fieldErrors.environment)}
-                                aria-describedby="environment-hint"
-                            />
-                            <small
-                                id="environment-hint"
-                                className={fieldErrors.environment ? 'field-error' : 'muted'}
-                            >
-                                {fieldErrors.environment || 'Örn. local, staging, production'}
-                            </small>
-                        </label>
-                        <div className="span-2">
+                    <div hidden={step !== 1}>
+                        <GitHubConnectionSelector
+                            connectionId={values.githubConnectionId}
+                            onChange={handleConnectionChange}
+                            onBusyChange={setIsConnectionBusy}
+                            onEditingChange={setIsEditingConnection}
+                            disabled={step !== 1 || isSaving}
+                        />
+                    </div>
+                    <fieldset
+                        className="project-fields"
+                        hidden={step !== 2}
+                        disabled={step !== 2 || isSaving}
+                    >
+                        <p className="muted">
+                            Bir profil, projenin nerede olduğunu ve hangi bağlantıları
+                            desteklediğini tanımlar.
+                        </p>
+                        <div className="form-grid">
                             <label className="field">
                                 <span>
-                                    Repository URL<span className="required"> *</span>
+                                    Proje adı<span className="required"> *</span>
                                 </span>
                                 <input
-                                    name="repositoryUrl"
-                                    value={values.repositoryUrl ?? ''}
+                                    name="name"
+                                    value={values.name ?? ''}
                                     onChange={handleChange}
-                                    type="url"
                                     required
-                                    maxLength={500}
-                                    placeholder="https://github.com/…"
-                                    aria-invalid={Boolean(fieldErrors.repositoryUrl)}
-                                    aria-describedby="repositoryUrl-hint"
+                                    maxLength={80}
+                                    placeholder="Örn. Personal_Task_App"
+                                    aria-invalid={Boolean(fieldErrors.name)}
+                                    aria-describedby="name-hint"
                                 />
-                                {fieldErrors.repositoryUrl && (
+                                {fieldErrors.name && (
                                     <small
-                                        id="repositoryUrl-hint"
-                                        className={
-                                            fieldErrors.repositoryUrl ? 'field-error' : 'muted'
-                                        }
+                                        id="name-hint"
+                                        className={fieldErrors.name ? 'field-error' : 'muted'}
                                     >
-                                        {fieldErrors.repositoryUrl}
+                                        {fieldErrors.name}
                                     </small>
                                 )}
                             </label>
-                        </div>
-                    </div>
-                    <h3>
-                        Bağlantı bilgileri <span className="muted optional">İsteğe bağlı</span>
-                    </h3>
-                    <div className="form-grid">
-                        <label className="field">
-                            <span>Jenkins bağlantı referansı</span>
-                            <input
-                                name="jenkinsBaseUrlRef"
-                                value={values.jenkinsBaseUrlRef ?? ''}
-                                onChange={handleChange}
-                                maxLength={100}
-                                placeholder="local-jenkins"
-                                aria-invalid={Boolean(fieldErrors.jenkinsBaseUrlRef)}
-                                aria-describedby="jenkinsBaseUrlRef-hint"
-                            />
-                            <small
-                                id="jenkinsBaseUrlRef-hint"
-                                className={fieldErrors.jenkinsBaseUrlRef ? 'field-error' : 'muted'}
-                            >
-                                {fieldErrors.jenkinsBaseUrlRef ||
-                                    'Bağlantıya verilen ad; token veya parola yazmayın.'}
-                            </small>
-                        </label>
-                        <label className="field">
-                            <span>Jenkins job yolu</span>
-                            <input
-                                name="jenkinsJobPath"
-                                value={values.jenkinsJobPath ?? ''}
-                                onChange={handleChange}
-                                maxLength={200}
-                                placeholder="folder/job-name"
-                                aria-invalid={Boolean(fieldErrors.jenkinsJobPath)}
-                                aria-describedby="jenkinsJobPath-hint"
-                            />
-                            {fieldErrors.jenkinsJobPath && (
+                            <label className="field">
+                                <span>
+                                    Ortam<span className="required"> *</span>
+                                </span>
+                                <input
+                                    name="environment"
+                                    value={values.environment ?? ''}
+                                    onChange={handleChange}
+                                    required
+                                    maxLength={30}
+                                    pattern="[a-z][a-z0-9_-]{0,29}"
+                                    aria-invalid={Boolean(fieldErrors.environment)}
+                                    aria-describedby="environment-hint"
+                                />
                                 <small
-                                    id="jenkinsJobPath-hint"
-                                    className={fieldErrors.jenkinsJobPath ? 'field-error' : 'muted'}
+                                    id="environment-hint"
+                                    className={fieldErrors.environment ? 'field-error' : 'muted'}
                                 >
-                                    {fieldErrors.jenkinsJobPath}
+                                    {fieldErrors.environment || 'Örn. local, staging, production'}
                                 </small>
-                            )}
-                        </label>
-                        <div className="span-2">
+                            </label>
+                            <div className="span-2">
+                                <label className="field">
+                                    <span>
+                                        Repository URL<span className="required"> *</span>
+                                    </span>
+                                    <input
+                                        name="repositoryUrl"
+                                        value={values.repositoryUrl ?? ''}
+                                        onChange={handleChange}
+                                        type="url"
+                                        required
+                                        maxLength={500}
+                                        placeholder="https://github.com/…"
+                                        aria-invalid={Boolean(fieldErrors.repositoryUrl)}
+                                        aria-describedby="repositoryUrl-hint"
+                                    />
+                                    {fieldErrors.repositoryUrl && (
+                                        <small
+                                            id="repositoryUrl-hint"
+                                            className={
+                                                fieldErrors.repositoryUrl ? 'field-error' : 'muted'
+                                            }
+                                        >
+                                            {fieldErrors.repositoryUrl}
+                                        </small>
+                                    )}
+                                </label>
+                            </div>
+                        </div>
+                        <h3>
+                            Bağlantı bilgileri <span className="muted optional">İsteğe bağlı</span>
+                        </h3>
+                        <div className="form-grid">
                             <label className="field">
-                                <span>Container label seçicisi</span>
+                                <span>Jenkins bağlantı referansı</span>
                                 <input
-                                    name="containerLabelSelector"
-                                    value={values.containerLabelSelector ?? ''}
+                                    name="jenkinsBaseUrlRef"
+                                    value={values.jenkinsBaseUrlRef ?? ''}
                                     onChange={handleChange}
-                                    maxLength={250}
-                                    placeholder="com.docker.compose.project=proje-adi"
-                                    aria-invalid={Boolean(fieldErrors.containerLabelSelector)}
-                                    aria-describedby="containerLabelSelector-hint"
+                                    maxLength={100}
+                                    placeholder="local-jenkins"
+                                    aria-invalid={Boolean(fieldErrors.jenkinsBaseUrlRef)}
+                                    aria-describedby="jenkinsBaseUrlRef-hint"
                                 />
-                                {fieldErrors.containerLabelSelector && (
+                                <small
+                                    id="jenkinsBaseUrlRef-hint"
+                                    className={
+                                        fieldErrors.jenkinsBaseUrlRef ? 'field-error' : 'muted'
+                                    }
+                                >
+                                    {fieldErrors.jenkinsBaseUrlRef ||
+                                        'Bağlantıya verilen ad; token veya parola yazmayın.'}
+                                </small>
+                            </label>
+                            <label className="field">
+                                <span>Jenkins job yolu</span>
+                                <input
+                                    name="jenkinsJobPath"
+                                    value={values.jenkinsJobPath ?? ''}
+                                    onChange={handleChange}
+                                    maxLength={200}
+                                    placeholder="folder/job-name"
+                                    aria-invalid={Boolean(fieldErrors.jenkinsJobPath)}
+                                    aria-describedby="jenkinsJobPath-hint"
+                                />
+                                {fieldErrors.jenkinsJobPath && (
                                     <small
-                                        id="containerLabelSelector-hint"
+                                        id="jenkinsJobPath-hint"
                                         className={
-                                            fieldErrors.containerLabelSelector
-                                                ? 'field-error'
-                                                : 'muted'
+                                            fieldErrors.jenkinsJobPath ? 'field-error' : 'muted'
                                         }
                                     >
-                                        {fieldErrors.containerLabelSelector}
+                                        {fieldErrors.jenkinsJobPath}
                                     </small>
                                 )}
                             </label>
-                        </div>
-                        <div className="span-2">
-                            <label className="field">
-                                <span>HTTP health URL</span>
-                                <input
-                                    name="healthUrl"
-                                    value={values.healthUrl ?? ''}
-                                    onChange={handleChange}
-                                    type="url"
-                                    maxLength={500}
-                                    placeholder="http://localhost:8080/actuator/health"
-                                    aria-invalid={Boolean(fieldErrors.healthUrl)}
-                                    aria-describedby="healthUrl-hint"
-                                />
-                                {fieldErrors.healthUrl && (
-                                    <small
-                                        id="healthUrl-hint"
-                                        className={fieldErrors.healthUrl ? 'field-error' : 'muted'}
-                                    >
-                                        {fieldErrors.healthUrl}
-                                    </small>
-                                )}
-                            </label>
-                        </div>
-                    </div>
-                    <fieldset>
-                        <legend>Desteklenen yetenekler</legend>
-                        <p className="muted small">
-                            Yetenek seçimi, bağlantının çalıştığını göstermez. Gerçek entegrasyonlar
-                            sonraki adımlarda eklenecek.
-                        </p>
-                        <div className="capability-options">
-                            {Object.entries(CAPABILITY_LABELS).map(([key, label]) => (
-                                <label className="check-label" key={key}>
+                            <div className="span-2">
+                                <label className="field">
+                                    <span>Container label seçicisi</span>
                                     <input
-                                        type="checkbox"
-                                        checked={values.capabilities.includes(key)}
-                                        value={key}
-                                        onChange={handleCapabilityChange}
+                                        name="containerLabelSelector"
+                                        value={values.containerLabelSelector ?? ''}
+                                        onChange={handleChange}
+                                        maxLength={250}
+                                        placeholder="com.docker.compose.project=proje-adi"
+                                        aria-invalid={Boolean(fieldErrors.containerLabelSelector)}
+                                        aria-describedby="containerLabelSelector-hint"
                                     />
-                                    {label}
+                                    {fieldErrors.containerLabelSelector && (
+                                        <small
+                                            id="containerLabelSelector-hint"
+                                            className={
+                                                fieldErrors.containerLabelSelector
+                                                    ? 'field-error'
+                                                    : 'muted'
+                                            }
+                                        >
+                                            {fieldErrors.containerLabelSelector}
+                                        </small>
+                                    )}
                                 </label>
-                            ))}
+                            </div>
+                            <div className="span-2">
+                                <label className="field">
+                                    <span>HTTP health URL</span>
+                                    <input
+                                        name="healthUrl"
+                                        value={values.healthUrl ?? ''}
+                                        onChange={handleChange}
+                                        type="url"
+                                        maxLength={500}
+                                        placeholder="http://localhost:8080/actuator/health"
+                                        aria-invalid={Boolean(fieldErrors.healthUrl)}
+                                        aria-describedby="healthUrl-hint"
+                                    />
+                                    {fieldErrors.healthUrl && (
+                                        <small
+                                            id="healthUrl-hint"
+                                            className={
+                                                fieldErrors.healthUrl ? 'field-error' : 'muted'
+                                            }
+                                        >
+                                            {fieldErrors.healthUrl}
+                                        </small>
+                                    )}
+                                </label>
+                            </div>
                         </div>
+                        <fieldset>
+                            <legend>Desteklenen yetenekler</legend>
+                            <p className="muted small">
+                                Yetenek seçimi, bağlantının çalıştığını göstermez. Gerçek
+                                entegrasyonlar sonraki adımlarda eklenecek.
+                            </p>
+                            <div className="capability-options">
+                                {Object.entries(CAPABILITY_LABELS).map(([key, label]) => (
+                                    <label className="check-label" key={key}>
+                                        <input
+                                            type="checkbox"
+                                            checked={values.capabilities.includes(key)}
+                                            value={key}
+                                            onChange={handleCapabilityChange}
+                                        />
+                                        {label}
+                                    </label>
+                                ))}
+                            </div>
+                        </fieldset>
+                        <label className="check-label enabled-check">
+                            <input
+                                type="checkbox"
+                                name="enabled"
+                                checked={values.enabled}
+                                onChange={handleChange}
+                            />
+                            Proje aktif
+                        </label>
                     </fieldset>
-                    <label className="check-label enabled-check">
-                        <input
-                            type="checkbox"
-                            name="enabled"
-                            checked={values.enabled}
-                            onChange={handleChange}
-                        />
-                        Proje aktif
-                    </label>
                     {error && (
                         <p className="notice error" role="alert">
                             {error}
@@ -319,14 +369,35 @@ function ProjectForm({ project, onSave, onClose }) {
                     <button
                         type="button"
                         className="button secondary"
-                        disabled={isSaving}
+                        disabled={isBusy}
                         onClick={onClose}
                     >
                         Vazgeç
                     </button>
-                    <button className="button primary" disabled={isSaving}>
-                        {isSaving ? 'Kaydediliyor…' : 'Profili kaydet'}
-                    </button>
+                    {step === 1 ? (
+                        <button
+                            type="button"
+                            className="button primary"
+                            disabled={isBusy || isEditingConnection}
+                            onClick={handleNextStep}
+                        >
+                            Devam et
+                        </button>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                className="button secondary"
+                                disabled={isBusy}
+                                onClick={handlePreviousStep}
+                            >
+                                GitHub bağlantısına dön
+                            </button>
+                            <button className="button primary" disabled={isBusy}>
+                                {isSaving ? 'Kaydediliyor…' : 'Profili kaydet'}
+                            </button>
+                        </>
+                    )}
                 </footer>
             </form>
         </dialog>

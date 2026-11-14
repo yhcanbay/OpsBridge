@@ -6,12 +6,12 @@ async function getAllProjects({ signal } = {}) {
 }
 
 async function saveProject(request) {
-    const response = await httpClient.post('/projects', request)
+    const response = await httpClient.post('/projects', request, { timeout: 20_000 })
     return response.data
 }
 
 async function updateProject(projectId, request) {
-    const response = await httpClient.put(`/projects/${projectId}`, request)
+    const response = await httpClient.put(`/projects/${projectId}`, request, { timeout: 20_000 })
     return response.data
 }
 
