@@ -1,6 +1,6 @@
 # Kullanıcı ve ürün bağlamı
 
-Son güncelleme: **2026-11-11 — Europe/Istanbul**
+Son güncelleme: **2026-11-13 — Europe/Istanbul**
 
 ## Kullanıcının anlattığı geçmiş ve amaç
 
@@ -12,6 +12,10 @@ Kaynak: Bu proje sohbetindeki kullanıcı açıklamaları.
 - Yalnızca çalışan kod değil, neyin neden yapıldığını anlayabileceği bir ilerleme istiyor. Somut uygulama akışları ve küçük adımlar açıklamayı kolaylaştırır.
 - Mevcut sekiz haftalık raporu yapay zekâ oluşturmuş. Kullanıcı raporun doğru/yanlış ve uygulanabilir kısımlarını kendi fikri üzerinden değerlendirmemizi istiyor; raporun tamamını onaylamış değil.
 - Sohbet bağlamını `.wiki` altında saklamamızı açıkça istedi. Amaç aynı geçmişi tekrar yazmamak ve ilerleyişi Codex ile senkron yürütmek.
+
+## 2026-11-13 — GitHub okumasına öğrenilen örnekle başlama
+
+Kullanıcı [paylaştığı dosyayla](<../javada dockerda çalışan uygulamanın ve o uygulaman.md>) Java `HttpClient` üzerinden GitHub branch/commit okuma ve build metadata ayrımını yeni öğrendiğini belirtti. Kodun hocası sorduğunda anlatabileceği sadelikte olmasını açıkça istedi ve uygulamaya başlamamıza izin verdi. İlk uygulama adımı GitHub branch/commit ekranıdır; bu sınır Codex'in küçük adımlı uygulama seçimidir. Önceki yerel depo + GitHub hedefi kaldırılmadı; çalışan Docker sürümü için build metadata bağlantısı da henüz yapılmadı. Kaynaktaki çok servisli tasarım önerisi, geniş mimari kurma talimatı olarak alınmadı.
 
 ## 2026-11-11 — Öğrenmeye uygun sadelik ve sınıf sayısı
 

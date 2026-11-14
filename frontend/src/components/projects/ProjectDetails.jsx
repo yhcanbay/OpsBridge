@@ -1,5 +1,6 @@
 import { CAPABILITY_LABELS } from '../../constants/projectProfile.js'
 import IntegrationCards from './IntegrationCards.jsx'
+import GitHistory from './GitHistory.jsx'
 
 function ProjectDetails({ project, onEdit, onDelete, deleting }) {
     const selectedCapabilities = Object.entries(CAPABILITY_LABELS).filter(([capability]) =>
@@ -30,10 +31,18 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
             <div className="detail-section">
                 <div className="section-heading">
                     <h3>Bağlantılar</h3>
-                    <span className="small muted">Canlı veri henüz alınmıyor</span>
+                    <span className="small muted">Jenkins, Docker ve health henüz bağlanmadı</span>
                 </div>
                 <IntegrationCards key={project.id} project={project} />
             </div>
+            {project.enabled ? (
+                <GitHistory key={`${project.id}:${project.updatedAt}`} projectId={project.id} />
+            ) : (
+                <div className="detail-section">
+                    <h3>GitHub geçmişi</h3>
+                    <p className="muted">Proje pasif. GitHub geçmişi okunmuyor.</p>
+                </div>
+            )}
             <div className="detail-section profile-section">
                 <h3>Profil yapılandırması</h3>
                 <dl className="profile-values">

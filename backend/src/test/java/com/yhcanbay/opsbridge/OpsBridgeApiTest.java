@@ -1,9 +1,18 @@
 package com.yhcanbay.opsbridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -28,10 +38,13 @@ class OpsBridgeApiTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
 
+    @MockitoBean HttpClient gitHubHttpClient;
+
     @Test
     void anonymousCannotReadProjectsButCanReadApplicationHealth() throws Exception {
         mvc.perform(get("/api/projects")).andExpect(status().isUnauthorized());
         mvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git")).andExpect(status().isUnauthorized());
         mvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
@@ -135,12 +148,60 @@ class OpsBridgeApiTest {
     @WithMockUser(roles = "VIEWER")
     void nonAdminCannotManageProfiles() throws Exception {
         mvc.perform(get("/api/projects")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git")).andExpect(status().isForbidden());
         mvc.perform(
                         post("/api/projects")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project("Blocked", "[]", true)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void gitHistoryReturnsDtoAndValidatesPageAndProject() throws Exception {
+        HttpResponse<String> branches = gitHubResponse(200, "[{\"name\":\"feature/git\"}]");
+        HttpResponse<String> commits = gitHubResponse(200, """
+                        [{"sha":"0123456789012345678901234567890123456789",
+                          "commit":{"message":"Git ekranı","author":{"name":"Example"},
+                          "committer":{"date":"2026-11-13T10:00:00Z"}}}]
+                        """);
+        when(gitHubHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(branches, commits);
+
+        mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git").param("branch", "feature/git"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.selectedBranch").value("feature/git"))
+                .andExpect(jsonPath("$.branches[0]").value("feature/git"))
+                .andExpect(jsonPath("$.commits[0].sha").value("0123456789012345678901234567890123456789"))
+                .andExpect(jsonPath("$.commits[0].message").value("Git ekranı"))
+                .andExpect(jsonPath("$.hasMoreCommits").value(false))
+                .andExpect(jsonPath("$.fetchedAt").isNotEmpty());
+        mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git").param("page", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Sayfa numarası en az 1 olmalıdır."));
+        mvc.perform(get("/api/projects/00000000-0000-0000-0000-000000000000/git"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void gitHubAccessFailureDoesNotBecomeAnOpsBridgeLoginFailure() throws Exception {
+        HttpResponse<String> errorResponse = gitHubResponse(401, "private detail");
+        when(gitHubHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(errorResponse);
+
+        mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.detail").value(
+                        "GitHub token'ı geçersiz veya süresi dolmuş. Backend yapılandırmasını kontrol edin."));
+    }
+
+    @SuppressWarnings("unchecked")
+    private HttpResponse<String> gitHubResponse(int status, String body) {
+        HttpResponse<String> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(status);
+        when(response.body()).thenReturn(body);
+        when(response.headers()).thenReturn(HttpHeaders.of(Map.of(), (name, value) -> true));
+        return response;
     }
 
     @Test

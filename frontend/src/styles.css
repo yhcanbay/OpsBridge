@@ -1057,6 +1057,51 @@ small {
   border: 0;
 }
 
+.git-branch-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.git-branch-controls select {
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 12px;
+  color: inherit;
+  background: #fff;
+  border: 1px solid #dce5e9;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.git-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.git-commits {
+  list-style: none;
+  margin: 20px 0;
+  padding: 0;
+}
+
+.git-commits li {
+  border-bottom: 1px solid #dce5e9;
+  padding: 16px 0;
+  overflow-wrap: anywhere;
+}
+
+.git-commit-message {
+  margin: 8px 0;
+  white-space: pre-wrap;
+}
+
 @media (min-width: 1500px) {
   .workspace-content {
     padding-top: 48px;

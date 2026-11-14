@@ -14,6 +14,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(GitHubException.class)
+    public ProblemDetail gitHubError(GitHubException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, exception.getMessage());
+    }
+
+    @ExceptionHandler(GitRequestException.class)
+    public ProblemDetail invalidGitRequest(GitRequestException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     @ExceptionHandler(ProjectNotFoundException.class)
     public ProblemDetail projectNotFound(ProjectNotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());

@@ -17,6 +17,7 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 - İlk kurulumda eklenen `Personal_Task_App` profili.
 - Proje profilinin aktifliği ve yeteneklerine göre üretilen Jenkins, Docker ve HTTP health bağlantı durumları.
 - React üzerinde giriş, proje arama/listeleme, profil düzenleme ve bağlantı durumları.
+- GitHub branch listesi ve seçilen branch'in sayfalanmış commit geçmişi; SHA, mesaj, yazar ve tarih.
 
 **Bu sürüm Jenkins/Docker/health verisi çekmez ve build başlatmaz.** Bağlantılar `NOT_CONNECTED`, yetenek tanımlanmamışsa `NOT_SUPPORTED`, profil pasifse `DISABLED` döner. “Aktif profil”, uygulamanın sağlıklı olduğu anlamına gelmez. `SECURITY_VIEW` tanımlanabilir; rapor ekranı henüz yoktur.
 
@@ -53,6 +54,14 @@ React yalnızca OpsBridge `/api` adreslerini çağırır. Geliştirmede Vite, co
 Kod düzeni, DTO/mapper, React Router/Axios, session/JWT ve DB tercihlerinin gerekçeleri resmî kaynaklarıyla [geliştirme rehberinde](docs/DEVELOPMENT_GUIDE.md) açıklanır. Giriş `/login`, projeler `/projects`, tek proje `/projects/{id}` adresindedir. Giriş gerektiren bir adresten giriş ekranına yönlendirilirseniz, girişten sonra istediğiniz adrese dönülür.
 
 Kod yazımı kullanıcının **Sozluk_Uygulamasi** projesini esas alır. Yerel referansın konumu ve controller/service, Lombok DTO, React biçim kuralları [kod yazım rehberinde](docs/CODING_STYLE.md) tutulur.
+
+## GitHub geçmişini kullanma
+
+Aktif bir projenin profilinde `https://github.com/kullanici/depo` biçiminde repository adresi tanımlayın. Proje detayındaki **GitHub geçmişi** bölümünde branch seçin; branch'ler ve commit'ler 20'şer kayıtla sayfalanır. İlk açılışta dönen ilk branch seçilir. **Yenile** branch ve commit sayfalarını başa alır.
+
+Herkese açık depolar token olmadan okunabilir. Özel depolar için `.env` içine yalnızca ilgili depolarda **Contents: read** yetkisi olan `GITHUB_TOKEN` ekleyin. Token backend'de kalır. Docker'da `.env` veya kod değişikliğini uygulamak için servisleri yeniden oluşturun: `docker compose up -d --build`. Yerelde backend'i yeniden başlatın.
+
+Bu bölüm GitHub verisini gösterir. Sunucudaki gönderilmemiş commit'ler ve çalışan Docker sürümünün commit'i henüz okunmaz. Çalışan sürümü belirlemek için izlenen uygulamanın build sırasında kaydettiği metadata ayrıca bağlanmalıdır. Kod akışının kısa açıklaması [Git görünürlüğü belgesinde](docs/GIT_VISIBILITY.md).
 
 ## Hızlı kurulum — Docker Compose
 
@@ -134,6 +143,7 @@ Bu portlar referans uygulamanın 5173/8080/5432 portlarından ve Jenkins'in 8081
 | GET / POST | `/api/projects` | Listele / oluştur |
 | GET / PUT / DELETE | `/api/projects/{id}` | Görüntüle / güncelle / sil |
 | GET | `/api/projects/{id}/integrations` | Adapter başlangıç durumları |
+| GET | `/api/projects/{id}/git?branch=main&page=1&branchPage=1` | GitHub branch ve commit geçmişi; branch verilmezse dönen ilk branch |
 | GET | `/actuator/health` | OpsBridge'in kendi sağlığı; yalnızca özet |
 
 CSRF endpoint'inden alınan token, yanıttaki `headerName` ile POST/PUT/DELETE isteklerine eklenir. Aynı oturum cookie'si korunur. Girişten sonra ve çıkıştan sonraki yeni girişte token yeniden alınır. React bu akışı yönetir; parola veya oturum token'ı `localStorage` içine yazılmaz. [Spring Security CSRF ve JavaScript](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
@@ -165,9 +175,9 @@ cd backend
 mvn verify
 ```
 
-11 backend testi giriş/çıkış, gerçek oturum ve CSRF token'ları, yetkisiz erişim, ADMIN kontrolü, genel profil CRUD, geçersiz alanlar, bağlantı durumları ve doğrudan DB integrity kurallarını kapsar. H2 test kapsamındadır; normal uygulama PostgreSQL kullanır. Paketler taşındıktan sonraki ilk kontrolde eski class dosyalarını kaldırmak için `mvn clean verify` kullanın.
+Backend testleri giriş/çıkış, gerçek oturum ve CSRF token'ları, yetkisiz erişim, ADMIN kontrolü, genel profil CRUD, geçersiz alanlar, bağlantı durumları, DB integrity ve GitHub okuma akışını kapsar. GitHub HTTP yanıtları testlerde taklit edilir; testler gerçek GitHub'a bağlanmaz. Mockito'nun test ayarı `mock-maker-subclass` olduğundan JVM'e agent bağlanması gerekmez. H2 test kapsamındadır; normal uygulama PostgreSQL kullanır. Paketler taşındıktan sonraki ilk kontrolde eski class dosyalarını kaldırmak için `mvn clean verify` kullanın.
 
-Frontend biçim kontrolü, 11 davranış testi ve üretim derlemesi, `frontend/` altında:
+Frontend biçim kontrolü, davranış testleri ve üretim derlemesi, `frontend/` altında:
 
 ```powershell
 npm.cmd ci

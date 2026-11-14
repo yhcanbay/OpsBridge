@@ -2,6 +2,20 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-13 — Öğrenilen HttpClient örneğiyle GitHub okumasının uygulanması
+
+Kullanıcı, paylaştığı GitHub/build metadata yazısıyla konuyu yeni öğrendiğini, hocaya anlatabileceği sadelikte kod istediğini belirtti ve uygulamaya başlamamıza izin verdi. İlk uygulama adımı GitHub branch/commit görünümü olarak sınırlandı; önceki yerel depo hedefi iptal edilmedi. Kaynaktaki çok servisli tasarım önerisi uygulanmadı; mevcut controller → service → response DTO akışında Java `HttpClient`, `JsonNode`, ara değişkenler ve açık döngüler kullanıldı.
+
+`/api/projects/{id}/git` ve proje detayındaki GitHub bölümü eklendi. Branch ve commit listeleri sayfalanır; SHA/mesaj/yazar/tarih ve başarılı okuma zamanı görünür. Yenilemede hata olursa eski veri temizlenir; gecikmiş iptal yanıtı gösterilmez. Token yalnızca backend yapılandırmasında tutulur; sabit GitHub API hedefine gönderilir. Geçersiz istek/proje ve GitHub erişim/limit/ağ hataları ayrılır; GitHub 401 yanıtı panel oturumunu sonlandırmaz. Yeni bağımlılık, adapter/factory veya DB migration eklenmedi.
+
+Nihai Maven verify H2 üzerinde **44 testi** ve jar üretimini geçirdi. İlk denemedeki Mockito agent bağlantı sorunu yalnızca testlerde `mock-maker-subclass` ile, iç içe mock hazırlama hatası da test düzeni düzeltilerek giderildi. **18 frontend testi**, biçim kontrolü, üretim build'i, Compose config ve diff kontrolü geçti. Üç eski frontend dosyasında yalnızca satır sonları normalleştirildi; içerik değişmediği HEAD ile doğrulandı. README, Git görünürlüğü, mimari/geliştirme rehberi, roadmap ve hafıza güncellendi.
+
+Gerçek GitHub/token erişimi, tarayıcı veya Docker deployment yapılmadı; HTTP yanıtları testlerde taklit edildi. Yerel Git/gönderilmemiş commit ve çalışan Docker sürümünün build metadatası henüz bağlanmadı. Referans uygulama/Jenkins, DB şeması ve portlar değiştirilmedi. Önceden staged değişiklikler korundu; commit/push yok. Sonraki adım önerisi, kullanıcının kodu incelemesinden sonra kalan kaynakları aynı sadelikle ele almak.
+
+## 2026-11-13 — Docker çalışma düzeninin kaynaklardan doğrulanması
+
+Kullanıcı Docker'da çalışmaya yönelik mevcut kurguyu kontrol etmemizi istedi. Compose, Dockerfile'lar, Nginx/Vite proxy, backend ayarları ve Axios istemcisi incelendi. Üç servisli Docker çalıştırma yolu ile yerel backend/frontend geliştirme yolu mevcut; Docker'da kaynak mount'u/watch olmadığı için kod değişiklikleri yeniden image derlemeyi gerektiriyor. Compose yapılandırma kontrolü başarılı; kullanıcı Docker config dosyasına erişim uyarısı ve iki Engine pipe'ına bağlantı hatası nedeniyle güncel container durumu doğrulanamadı. STATUS güncellendi; uygulama veya canlı sistem değiştirilmedi, uygulama testleri/build/deployment çalıştırılmadı. Yeni mimari karar veya entegrasyon uygulaması yapılmadı.
+
 ## 2026-11-11 — Kullanıcı isteğiyle integration kodunun sadeleştirilmesi
 
 Kullanıcı açıklamanın ardından bu yaklaşıma göre gereken kodun değiştirilmesini istedi. `integration/` içindeki sekiz dosya ve aynı alanları yanıt DTO'suna kopyalayan `IntegrationMapper` kaldırıldı. Durum üretimi mevcut `IntegrationServiceImpl` içinde iki metotta toplandı; yalnızca repository bağımlılığı kaldı. Controller/service arayüzü, DTO, API adresi, kart sırası, mesajlar ve pasif/yeteneği kapalı/bağlanmadı davranışı korundu. Önceki hazırlık mimarisinin yerine bugünkü ihtiyaca uygun servis akışı seçildi.

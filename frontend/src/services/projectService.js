@@ -24,10 +24,21 @@ async function getIntegrationStatuses(projectId, { signal } = {}) {
     return response.data
 }
 
+async function getGitHistory(projectId, { branch, page, branchPage }, { signal } = {}) {
+    const response = await httpClient.get(`/projects/${projectId}/git`, {
+        params: { branch, page, branchPage },
+        signal,
+        // Backend, branch listesi ve commit geçmişi için iki ayrı GitHub isteği yapar.
+        timeout: 35_000
+    })
+    return response.data
+}
+
 export const projectService = {
     getAllProjects,
     saveProject,
     updateProject,
     deleteProject,
-    getIntegrationStatuses
+    getIntegrationStatuses,
+    getGitHistory
 }

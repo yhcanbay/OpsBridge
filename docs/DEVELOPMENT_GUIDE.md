@@ -29,6 +29,8 @@ com.yhcanbay.opsbridge
 
 **11 Kasım sadeleştirmesi:** Jenkins, Docker ve HTTP health başlangıç durumları `IntegrationServiceImpl` içinde doğrudan `IntegrationStatusResponse` olarak oluşturulur. Henüz dış istek yapılmadığı için adapter/stub/factory ve ayrı sonuç modeli kaldırıldı. Akış controller → service → response DTO şeklindedir; gerçek bağlantılar ihtiyaç oldukça tanıdık servis düzeninde eklenir.
 
+**13 Kasım GitHub adımı:** `GitServiceImpl`, kullanıcının öğrendiği Java `HttpClient` ile branch/commit listelerini okur ve açık döngülerle yanıt DTO'larını oluşturur. Yeni adapter veya HTTP kütüphanesi eklenmez. Katmanlar arasındaki kısa örnek akış [Git görünürlüğü belgesinde](GIT_VISIBILITY.md).
+
 Örneğin proje oluşturma akışı:
 
 1. `IProjectController`, `ProjectRequest` verisini doğrulatır; `ProjectControllerImpl` servisi çağırır.
