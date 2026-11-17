@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { INTEGRATION_STATE_LABELS } from '../../constants/projectProfile.js'
 import { useIntegrations } from '../../hooks/useIntegrations.js'
 
@@ -26,7 +27,9 @@ function IntegrationCards({ project }) {
                 <article className="integration-card" key={item.integration}>
                     <span className="integration-number">0{index + 1}</span>
                     <h4>{item.integration}</h4>
-                    <span className="status neutral">
+                    <span
+                        className={`status ${item.state === 'CONNECTED' ? 'success' : 'neutral'}`}
+                    >
                         <span className="status-dot" />
                         {INTEGRATION_STATE_LABELS[item.state] ?? item.state}
                     </span>
@@ -37,6 +40,19 @@ function IntegrationCards({ project }) {
                             ? new Date(item.lastSuccessfulFetchAt).toLocaleString('tr-TR')
                             : 'Henüz yok'}
                     </small>
+                    {item.integration === 'Jenkins' &&
+                        (item.state === 'CONNECTED' ? (
+                            <Link
+                                className="integration-details-link"
+                                to={`/projects/${project.id}/jenkins`}
+                            >
+                                Jenkins ayrıntıları ↗
+                            </Link>
+                        ) : (
+                            <span className="integration-unavailable">
+                                Ayrıntılar için Jenkins bağlantısı gerekli.
+                            </span>
+                        ))}
                 </article>
             ))}
         </div>

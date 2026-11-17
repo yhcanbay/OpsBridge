@@ -91,12 +91,20 @@ describe('proje profili formu', () => {
         expect(screen.getByLabelText('Jenkins job yolu').value).toBe('')
         expect(screen.getByLabelText('Build görüntüleme').checked).toBe(true)
         fireEvent.change(screen.getByLabelText(/Proje adı/), { target: { value: 'Yeni ad' } })
+        fireEvent.change(screen.getByLabelText('Jenkins URL / referansı'), {
+            target: { value: 'http://localhost:8081/jenkins' }
+        })
+        fireEvent.change(screen.getByLabelText('Jenkins job yolu'), {
+            target: { value: 'apps/correct-job' }
+        })
         fireEvent.click(screen.getByRole('button', { name: 'Profili kaydet' }))
 
         await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
         const request = onSave.mock.calls[0][0]
         expect(request.name).toBe('Yeni ad')
         expect(request.environment).toBe('staging')
+        expect(request.jenkinsBaseUrlRef).toBe('http://localhost:8081/jenkins')
+        expect(request.jenkinsJobPath).toBe('apps/correct-job')
         expect(request.capabilities).toEqual(['BUILD_VIEW'])
         expect(request).not.toHaveProperty('id')
         expect(request).not.toHaveProperty('createdAt')

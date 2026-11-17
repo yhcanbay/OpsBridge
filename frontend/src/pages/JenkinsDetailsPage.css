@@ -820,7 +820,7 @@ body:has(.jd-app) {
 
 .jd-stages {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--jd-stage-count, 5), minmax(100px, 1fr));
   list-style: none;
   padding: 29px 18px 27px;
 }
@@ -1997,5 +1997,163 @@ body:has(.jd-app) {
 
   .jd-button {
     transition: none;
+  }
+}
+
+.jd-integrated {
+  min-height: auto;
+}
+
+.jd-integrated .jd-main {
+  padding-top: 26px;
+}
+
+.jd-page-breadcrumb {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: #647b88;
+}
+
+.jd-page-breadcrumb a {
+  color: #217e70;
+}
+
+.jd-stage-scroll {
+  position: relative;
+  overflow-x: auto;
+}
+
+.jd-integrated a {
+  text-decoration: none;
+}
+
+.jd-integrated a:hover {
+  text-decoration: underline;
+}
+
+.jd-integrated .jd-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.jd-integrated .jd-status.jd-unstable,
+.jd-integrated .jd-status.jd-paused {
+  color: #8a6a2c;
+  background: #fbf4e5;
+}
+
+.jd-integrated .jd-status.jd-aborted,
+.jd-integrated .jd-status.jd-skipped,
+.jd-integrated .jd-status.jd-unknown {
+  color: #607783;
+  background: #f0f3f5;
+}
+
+.jd-integrated .jd-mini-history .jd-unstable {
+  background: #bd9c50;
+}
+
+.jd-integrated .jd-mini-history .jd-aborted,
+.jd-integrated .jd-mini-history .jd-skipped,
+.jd-integrated .jd-mini-history .jd-unknown {
+  background: #93a3ad;
+}
+
+.jd-section-empty {
+  padding: 30px 24px;
+  color: #6e8390;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.jd-section-empty strong {
+  display: block;
+  margin: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jd-loading {
+  padding: 40px 0;
+  color: #647e8c;
+}
+
+.jd-integrated .jd-empty {
+  margin-top: 24px;
+}
+
+.jd-inline-note,
+.jd-history-empty {
+  color: #718590;
+  font-size: 12px;
+  padding: 18px 21px;
+}
+
+.jd-integrated .jd-commit-message strong {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.jd-changes-more {
+  display: block;
+  padding: 0 21px 18px;
+  font-size: 12px;
+}
+
+.jd-integrated .jd-repository-name {
+  display: block;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jd-integrated .jd-branch-pill {
+  max-width: 170px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.jd-integrated .jd-connection-bar > div {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.jd-integrated .jd-job-name,
+.jd-integrated .jd-stage > strong {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.jd-integrated .jd-card-header p {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+
+.jd-integrated .jd-test-progress .jd-test-skipped {
+  background: #b3bbc2;
+}
+
+.jd-integrated .jd-failed-test code {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .jd-page-breadcrumb {
+    flex-direction: column;
+  }
+
+  .jd-integrated .jd-stages {
+    min-width: 0;
+  }
+
+  .jd-integrated .jd-job-name {
+    overflow-wrap: anywhere;
+  }
+
+  .jd-integrated .jd-connection-bar > div {
+    flex-wrap: wrap;
   }
 }

@@ -19,8 +19,9 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 - React üzerinde giriş, proje arama/listeleme, profil düzenleme ve bağlantı durumları.
 - GitHub branch listesi ve seçilen branch'in sayfalanmış commit geçmişi; SHA, mesaj, yazar ve tarih.
 - Kayıtlı GitHub hesap/token bağlantıları; proje eklerken bağlantı seçimi, yeni token ekleme, yenileme ve kullanılmayan bağlantıyı silme.
+- Jenkins bağlantı kontrolü ve ayrıntı ekranı; son/seçili build, aşamalar, geçmiş, commit/değişiklik ve yayımlanmış test raporu özeti.
 
-**Bu sürüm Jenkins/Docker/health verisi çekmez ve build başlatmaz.** Bağlantılar `NOT_CONNECTED`, yetenek tanımlanmamışsa `NOT_SUPPORTED`, profil pasifse `DISABLED` döner. “Aktif profil”, uygulamanın sağlıklı olduğu anlamına gelmez. `SECURITY_VIEW` tanımlanabilir; rapor ekranı henüz yoktur.
+**Jenkins verisi salt okunur; build başlatılmaz.** Jenkins kartı job erişimini kontrol eder ve yalnız `CONNECTED` durumunda ayrıntı ekranına geçiş verir. Docker/health henüz bağlanmadı. “Aktif profil” veya başarılı build, uygulamanın şu anda sağlıklı olduğu anlamına gelmez. `SECURITY_VIEW` tanımlanabilir; güvenlik rapor ekranı henüz yoktur.
 
 ## Klasör yapısı
 
@@ -50,7 +51,7 @@ OpsBridge/
 └── .wiki/                   Proje hafızası
 ```
 
-React yalnızca OpsBridge `/api` adreslerini çağırır. Geliştirmede Vite, container ortamında Nginx bu istekleri Spring Boot'a aktarır. Veriler PostgreSQL'de tutulur. Böylece tarayıcıya Jenkins token'ı veya Docker erişim bilgisi verilmez.
+React yalnızca OpsBridge `/api` adreslerini çağırır. Geliştirmede Vite, container ortamında Nginx bu istekleri Spring Boot'a aktarır. Proje profilleri ve GitHub bağlantıları PostgreSQL'de tutulur; Jenkins build/aşama/test verisi her okumada Jenkins'ten alınır ve veritabanına kaydedilmez. Tarayıcıya Jenkins token'ı veya Docker erişim bilgisi verilmez.
 
 Kod düzeni, DTO/mapper, React Router/Axios, session/JWT ve DB tercihlerinin gerekçeleri resmî kaynaklarıyla [geliştirme rehberinde](docs/DEVELOPMENT_GUIDE.md) açıklanır. Giriş `/login`, projeler `/projects`, tek proje `/projects/{id}` adresindedir. Giriş gerektiren bir adresten giriş ekranına yönlendirilirseniz, girişten sonra istediğiniz adrese dönülür.
 
@@ -67,6 +68,14 @@ Aynı hesaba ait farklı tokenlar ayrı bağlantılar olarak kaydedilebilir; bir
 Tokenlar veritabanında AES-GCM ile şifrelenir. Liste yanıtında veya proje yanıtında token bulunmaz. Tarayıcı tokenı yalnız ekleme/yenileme isteğinde backend'e gönderir; kalıcı tarayıcı depolamasına yazmaz. `GITHUB_TOKEN` ortam değişkeni artık kullanılmaz; mevcut tokenı panelden bir bağlantı olarak ekleyin. Mevcut projeler migration sonrasında bağlantısız kalır; özel depolar için profil düzenlemeden bağlantı seçin.
 
 Bu bölüm GitHub verisini gösterir. Sunucudaki gönderilmemiş commit'ler ve çalışan Docker sürümünün commit'i henüz okunmaz. Çalışan sürümü belirlemek için izlenen uygulamanın build sırasında kaydettiği metadata ayrıca bağlanmalıdır. Kod akışının kısa açıklaması [Git görünürlüğü belgesinde](docs/GIT_VISIBILITY.md).
+
+## Jenkins bağlantısını kullanma
+
+Jenkins bağlantısı için proje detayındaki **Profili düzenle → Devam et** yolundan mevcut **Jenkins URL / referansı** ve **Jenkins job yolu** alanlarını doldurun. Yanlış URL/job aynı yerden düzeltilebilir; yeniden backend başlatmak gerekmez. URL alanı gerçek HTTP(S) adresi veya `local-jenkins` olabilir. `local-jenkins`, sunucudaki `JENKINS_BASE_URL` ayarını kullanır. Job yolu örneği: `taskapp-cicd` veya `apps/taskapp-cicd`.
+
+Jenkins kimlik doğrulaması gerekiyorsa `.env` içindeki `JENKINS_USERNAME` ve `JENKINS_API_TOKEN` değerlerini birlikte tanımlayın. `JENKINS_BASE_URL` bu tokenın gönderilebileceği ana adrestir; ek adresler `JENKINS_ALLOWED_BASE_URLS` içinde virgülle ayrılır. Ortam ayarı değiştiğinde backend yeniden başlatılır. Yerel backend host Jenkins'e `http://localhost:8081`, Docker backend ise `http://host.docker.internal:8081` gibi container'dan erişilebilen adresle bağlanır.
+
+Bağlantı doğrulandığında projelerdeki **Jenkins** kartına tıklayın. `/projects/{id}/jenkins` ekranı açılır; **Yenile** yeniden okur, geçmişteki build numarası o çalışmayı seçer. Kurulum, hata durumları, aşama/test raporu gereksinimleri ve kısa kod akışı [Jenkins görünürlüğü belgesinde](docs/JENKINS_VISIBILITY.md).
 
 ## Hızlı kurulum — Docker Compose
 

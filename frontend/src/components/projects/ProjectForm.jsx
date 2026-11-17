@@ -235,13 +235,14 @@ function ProjectForm({ project, onSave, onClose }) {
                         </h3>
                         <div className="form-grid">
                             <label className="field">
-                                <span>Jenkins bağlantı referansı</span>
+                                <span>Jenkins URL / referansı</span>
                                 <input
                                     name="jenkinsBaseUrlRef"
+                                    aria-label="Jenkins URL / referansı"
                                     value={values.jenkinsBaseUrlRef ?? ''}
                                     onChange={handleChange}
                                     maxLength={100}
-                                    placeholder="local-jenkins"
+                                    placeholder="http://localhost:8081"
                                     aria-invalid={Boolean(fieldErrors.jenkinsBaseUrlRef)}
                                     aria-describedby="jenkinsBaseUrlRef-hint"
                                 />
@@ -252,13 +253,14 @@ function ProjectForm({ project, onSave, onClose }) {
                                     }
                                 >
                                     {fieldErrors.jenkinsBaseUrlRef ||
-                                        'Bağlantıya verilen ad; token veya parola yazmayın.'}
+                                        'Jenkins ana adresi veya local-jenkins referansı. Token veya parola yazmayın.'}
                                 </small>
                             </label>
                             <label className="field">
                                 <span>Jenkins job yolu</span>
                                 <input
                                     name="jenkinsJobPath"
+                                    aria-label="Jenkins job yolu"
                                     value={values.jenkinsJobPath ?? ''}
                                     onChange={handleChange}
                                     maxLength={200}
@@ -266,16 +268,13 @@ function ProjectForm({ project, onSave, onClose }) {
                                     aria-invalid={Boolean(fieldErrors.jenkinsJobPath)}
                                     aria-describedby="jenkinsJobPath-hint"
                                 />
-                                {fieldErrors.jenkinsJobPath && (
-                                    <small
-                                        id="jenkinsJobPath-hint"
-                                        className={
-                                            fieldErrors.jenkinsJobPath ? 'field-error' : 'muted'
-                                        }
-                                    >
-                                        {fieldErrors.jenkinsJobPath}
-                                    </small>
-                                )}
+                                <small
+                                    id="jenkinsJobPath-hint"
+                                    className={fieldErrors.jenkinsJobPath ? 'field-error' : 'muted'}
+                                >
+                                    {fieldErrors.jenkinsJobPath ||
+                                        'Job adı veya klasör/job-adı. Sonuna /api/json eklemeyin.'}
+                                </small>
                             </label>
                             <div className="span-2">
                                 <label className="field">
@@ -332,8 +331,8 @@ function ProjectForm({ project, onSave, onClose }) {
                         <fieldset>
                             <legend>Desteklenen yetenekler</legend>
                             <p className="muted small">
-                                Yetenek seçimi, bağlantının çalıştığını göstermez. Gerçek
-                                entegrasyonlar sonraki adımlarda eklenecek.
+                                Yetenek seçimi, bağlantının çalıştığını göstermez. Jenkins
+                                bağlantısı profil kaydedildikten sonra kontrol edilir.
                             </p>
                             <div className="capability-options">
                                 {Object.entries(CAPABILITY_LABELS).map(([key, label]) => (

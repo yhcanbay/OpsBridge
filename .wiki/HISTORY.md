@@ -2,6 +2,26 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-14 — Jenkins erişiminde eksik kimlik bilgisi bulgusu
+
+Kullanıcı `localhost:8081` / `job/taskapp-cicd/` ayarlarıyla 401/403 mesajı aldığını bildirdi. Yol biçimi doğru işlendiği görüldü; aynı job API'sine anonim GET 403 döndü ve Jenkins 2.541.3 erişilebilirliği doğrulandı. Proje `.env` dosyasında Jenkins kullanıcı/token ayarları boş veya yoktu; gerçek değerler çıktılanmadı. Mevcut kod bu durumda anonim istek gönderir. Kullanıcıya Jenkins kullanıcı API tokenı ile ortam ayarı ve OpsBridge backend yeniden başlatma adımı anlatıldı. Çalışan IDE sürecinin ortamı ve kimlik doğrulanmış istek doğrulanmadı. Kod, `.env`, Jenkins güvenlik ayarları veya build'ler değiştirilmedi.
+
+## 2026-11-14 — Canlı şema geçmişiyle çakışan Flyway V4'ün düzeltilmesi
+
+Kullanıcının paylaştığı başlangıç logu V4 checksum uyuşmazlığı gösterdi. Mevcut PostgreSQL 16.13 salt okunur sorgulanınca V4/V5'in eski yerel repository/branch ayarlarına ait olduğu, kaynakta ise V4 numarasının GitHub bağlantı tablosu için yeniden kullanıldığı görüldü. Önceki temiz test DB'leri bu eski şema geçmişini yakalamamıştı.
+
+Orijinal V4, durmuş OpsBridge container jar'ından; V5, repository'deki Git nesnesinden geri kazanıldı. İkisinin checksum'ı DB ile birebir doğrulandı. GitHub migration'ı V6'ya taşındı; eski history kayıtları değiştirilmedi ve `repair`/validation kapatma kullanılmadı. Legacy kolonların korunması, yerel Git özelliğinin yeniden uygulandığı anlamına gelmez.
+
+98 backend testi geçti. PostgreSQL'deki geçici şemalarda temiz kurulum ve V5→V6 geçişi/veri korunması doğrulandı; şemalar kaldırıldı. Mevcut DB'nin yedeği alındı, ardından gerçek uygulama 18084 üzerinde mevcut DB ile açılarak V6 uygulandı ve health UP görüldü. Proje/yetenek verileri ile V1–V5 history satırlarının önce/sonra özetleri eşleşti. Doğrulama süreci kapatıldı; kullanıcının 8082 sürecine müdahale edilmedi. Frontend, Jenkins ve referans uygulama değiştirilmedi; commit/stage yapılmadı. Yedek ve logların konumu STATUS'tadır.
+
+## 2026-11-14 — Jenkins ekranının gerçek okuma akışına bağlanması
+
+Kullanıcı önceki tasarımın kodla birleştirilmesini istedi ve `RestClient` ile Basic auth kullanan servis örneği verdi. Mevcut iki proje alanının (`jenkins_base_url_ref`, `jenkins_job_path`) zaten DB'de olduğunu, yalnızca değiştirilebilir kalmalarını istediğini netleştirdi. Son talimatında düzenlemenin genel proje ayarlarından yapılabileceğini ve bağlantı yoksa Jenkins ayrıntısına girilmeyeceğini belirtti. Önceki tasarım görevinin backend/yönlendirme yasağı yeni iş için kaldırıldı; yeni Jenkins veritabanı modeli veya build tetikleme kapsamı eklenmedi.
+
+Mevcut katman düzeninde RestClient servisi ve `/api/projects/{id}/jenkins` eklendi; genel profil düzenlemesi aynı alanları kaydetmeye devam eder. Jenkins kartı GET ile job erişimini doğrular, yalnız bağlantı başarılıysa mevcut dashboard içinde gerçek ayrıntı sayfasını açar. Son/seçili build, aşamalar, son tamamlanmış çalışmalar, commit/değişiklik ve yayımlanmış test raporu görünür. Eksik stage/rapor bilinmiyor olarak açıklanır; başarısız build ile bağlantı hatası ayrılır. Ortak token yalnız yapılandırılmış güvenilir adreslere gönderilir ve istemciye dönmez. İlk örnek tasarım ayrı önizlemede korunur.
+
+Maven verify H2 üzerinde **97 test**, frontend **39 test**, biçim ve build kontrolü geçti. Gerçek Spring Boot/RestClient, geçici H2 ve yerel Jenkins HTTP fixture'ıyla Chrome'da giriş, genel formdan yanlış URL/job düzeltme, bağlantıya göre geçiş, build seçimi, raporsuz/bağlantısız/boş durumlar ve 320–1440 px görünüm doğrulandı. Fixture 22 GET aldı; Jenkins mutation yapılmadı. QA servisleri kapatıldı. Gerçek Jenkins tokenı/sunucusu, PostgreSQL suite'i ve üretim Docker deployment bu turda doğrulanmadı; kaynak referans uygulamaya veya Jenkins kurulumuna müdahale edilmedi. Yeni migration/DB şeması, commit/push yoktur. Ayrıntı ve devam sınırları STATUS/JENKINS_VISIBILITY belgesindedir.
+
 ## 2026-11-14 — Yalnızca tasarım kapsamında Jenkins ayrıntı sayfası
 
 Kullanıcı, `Jenkins özellikleri.md` belgesindeki özellikleri ileride projeye eklemeyi düşündüğünü belirtti ve projelerden açılacak Jenkins ayrıntı ekranının tasarımını istedi. Bu tur için backend, mevcut kodların düzenlenmesi ve tıklama/yönlendirme akışı açıkça kapsam dışındadır. Jenkinsfile veya gerçek Jenkins bağlantısı eklenmedi.

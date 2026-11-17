@@ -20,7 +20,12 @@ export const EMPTY_PROJECT = {
 }
 
 export const INTEGRATION_STATE_LABELS = {
+    CONNECTED: 'Bağlı',
     NOT_CONNECTED: 'Henüz bağlanmadı',
     NOT_SUPPORTED: 'Desteklenmiyor',
-    DISABLED: 'Proje pasif'
+    DISABLED: 'Proje pasif',
+    UNREACHABLE: 'Ulaşılamıyor',
+    JOB_NOT_FOUND: 'Job bulunamadı',
+    ACCESS_DENIED: 'Erişim reddedildi',
+    INVALID_RESPONSE: 'Yanıt okunamadı'
 }

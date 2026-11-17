@@ -31,7 +31,9 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
             <div className="detail-section">
                 <div className="section-heading">
                     <h3>Bağlantılar</h3>
-                    <span className="small muted">Jenkins, Docker ve health henüz bağlanmadı</span>
+                    <span className="small muted">
+                        Jenkins bağlantısı profil ayarlarıyla kontrol edilir.
+                    </span>
                 </div>
                 <IntegrationCards key={project.id} project={project} />
             </div>
@@ -47,7 +49,7 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
                 <h3>Profil yapılandırması</h3>
                 <dl className="profile-values">
                     <div>
-                        <dt>Jenkins referansı</dt>
+                        <dt>Jenkins URL / referansı</dt>
                         <dd>{project.jenkinsBaseUrlRef || 'Tanımlanmadı'}</dd>
                     </div>
                     <div>

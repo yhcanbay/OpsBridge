@@ -12,9 +12,24 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.yhcanbay.opsbridge.dto.request.GitHubConnectionRequest;
+import com.yhcanbay.opsbridge.enums.IntegrationState;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(JenkinsException.class)
+    public ProblemDetail jenkinsError(JenkinsException exception) {
+        HttpStatus status = HttpStatus.BAD_GATEWAY;
+        if (exception.getState() == IntegrationState.NOT_CONNECTED
+                || exception.getState() == IntegrationState.DISABLED
+                || exception.getState() == IntegrationState.NOT_SUPPORTED) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                status, exception.getMessage());
+        problem.setProperty("jenkinsState", exception.getState());
+        return problem;
+    }
 
     @ExceptionHandler(GitHubConnectionNotFoundException.class)
     public ProblemDetail connectionNotFound(GitHubConnectionNotFoundException exception) {
@@ -68,6 +83,9 @@ public class ApiExceptionHandler {
     }
 
     private String requestFieldName(String validationProperty) {
+        if ("jenkinsBaseUrlRefValid".equals(validationProperty)) {
+            return "jenkinsBaseUrlRef";
+        }
         if ("repositoryUrlValid".equals(validationProperty)) {
             return "repositoryUrl";
         }

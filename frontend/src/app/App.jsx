@@ -4,6 +4,7 @@ import DashboardLayout from '../layouts/DashboardLayout.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
 import ProjectsPage from '../pages/ProjectsPage.jsx'
+import JenkinsDetailsPage from '../pages/JenkinsDetailsPage.jsx'
 
 function App() {
     return (
@@ -14,6 +15,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/projects" replace />} />
                     <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/projects/:projectId" element={<ProjectsPage />} />
+                    <Route path="/projects/:projectId/jenkins" element={<JenkinsDetailsPage />} />
                 </Route>
             </Route>
             <Route path="*" element={<NotFoundPage />} />

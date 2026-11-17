@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.yhcanbay.opsbridge.dto.response.IntegrationStatusResponse;
 import com.yhcanbay.opsbridge.entity.ProjectProfile;
@@ -16,15 +15,16 @@ import com.yhcanbay.opsbridge.enums.IntegrationState;
 import com.yhcanbay.opsbridge.exception.ProjectNotFoundException;
 import com.yhcanbay.opsbridge.repository.ProjectRepository;
 import com.yhcanbay.opsbridge.service.IIntegrationService;
+import com.yhcanbay.opsbridge.service.IJenkinsService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class IntegrationServiceImpl implements IIntegrationService {
 
     private final ProjectRepository projectRepository;
+    private final IJenkinsService jenkinsService;
 
     @Override
     public List<IntegrationStatusResponse> getIntegrationStatuses(UUID projectId) {
@@ -43,6 +43,9 @@ public class IntegrationServiceImpl implements IIntegrationService {
         boolean healthSupported = capabilities.contains(Capability.HEALTH_VIEW);
 
         IntegrationStatusResponse jenkinsStatus = createIntegrationStatus(project, "Jenkins", jenkinsSupported);
+        if (project.isEnabled() && jenkinsSupported) {
+            jenkinsStatus = jenkinsService.getJenkinsConnectionStatus(project);
+        }
         IntegrationStatusResponse dockerStatus = createIntegrationStatus(project, "Docker", dockerSupported);
         IntegrationStatusResponse healthStatus = createIntegrationStatus(project, "HTTP Health", healthSupported);
 

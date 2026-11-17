@@ -29,7 +29,7 @@ com.yhcanbay.opsbridge
     └── impl/                 Kullanım senaryoları ve transaction
 ```
 
-**11 Kasım sadeleştirmesi:** Jenkins, Docker ve HTTP health başlangıç durumları `IntegrationServiceImpl` içinde doğrudan `IntegrationStatusResponse` olarak oluşturulur. Henüz dış istek yapılmadığı için adapter/stub/factory ve ayrı sonuç modeli kaldırıldı. Akış controller → service → response DTO şeklindedir; gerçek bağlantılar ihtiyaç oldukça tanıdık servis düzeninde eklenir.
+**11 Kasım sadeleştirmesi:** Geçici adapter/stub/factory ve ayrı sonuç modeli kaldırıldı. Akış controller → service → response DTO şeklindedir. 14 Kasım'da Jenkins okuma `JenkinsServiceImpl` ve kullanıcının verdiği `RestClient` örneğiyle eklendi; `IntegrationServiceImpl` Jenkins erişimini bu servisle kontrol eder. Docker/HTTP health başlangıç durumları doğrudan üretilmeye devam eder. Jenkins çalışma verisi DB'ye kaydedilmez; [akış ve ayarlar](JENKINS_VISIBILITY.md).
 
 **13 Kasım GitHub adımı:** `GitServiceImpl`, kullanıcının öğrendiği Java `HttpClient` ile branch/commit listelerini okur ve açık döngülerle yanıt DTO'larını oluşturur. Yeni adapter veya HTTP kütüphanesi eklenmez. Katmanlar arasındaki kısa örnek akış [Git görünürlüğü belgesinde](GIT_VISIBILITY.md).
 

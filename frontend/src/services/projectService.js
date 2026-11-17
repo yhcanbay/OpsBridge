@@ -5,6 +5,20 @@ async function getAllProjects({ signal } = {}) {
     return response.data
 }
 
+async function getProjectById(projectId, { signal } = {}) {
+    const response = await httpClient.get(`/projects/${projectId}`, { signal })
+    return response.data
+}
+
+async function getJenkinsJobInfo(projectId, build, { signal } = {}) {
+    const response = await httpClient.get(`/projects/${projectId}/jenkins`, {
+        params: { build },
+        signal,
+        timeout: 25_000
+    })
+    return response.data
+}
+
 async function saveProject(request) {
     const response = await httpClient.post('/projects', request, { timeout: 20_000 })
     return response.data
@@ -36,6 +50,8 @@ async function getGitHistory(projectId, { branch, page, branchPage }, { signal }
 
 export const projectService = {
     getAllProjects,
+    getProjectById,
+    getJenkinsJobInfo,
     saveProject,
     updateProject,
     deleteProject,

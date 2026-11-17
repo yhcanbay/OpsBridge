@@ -9,6 +9,7 @@ export function useIntegrations(projectId, profileUpdatedAt) {
 
     useEffect(() => {
         const controller = new AbortController()
+        setItems([])
         setIsLoading(true)
         setError('')
 
@@ -17,9 +18,11 @@ export function useIntegrations(projectId, profileUpdatedAt) {
                 const result = await projectService.getIntegrationStatuses(projectId, {
                     signal: controller.signal
                 })
-                setItems(result)
+                if (!controller.signal.aborted) {
+                    setItems(result)
+                }
             } catch (failure) {
-                if (!isRequestCancelled(failure)) {
+                if (!controller.signal.aborted && !isRequestCancelled(failure)) {
                     setError(failure.message)
                 }
             } finally {

@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import JenkinsDetailsPage from '../pages/JenkinsDetailsPage.jsx'
+import JenkinsDesignPreview from './JenkinsDesignPreview.jsx'
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <JenkinsDetailsPage />
+        <JenkinsDesignPreview />
     </StrictMode>
 )

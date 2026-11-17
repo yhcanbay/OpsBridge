@@ -2,6 +2,10 @@
 
 Son güncelleme: **2026-11-14 — Europe/Istanbul**
 
+## 2026-11-14 — Jenkins okuma kapsamı ve düzenlenebilir proje ayarları
+
+**Kullanıcı isteği:** Önceki Jenkins ayrıntı tasarımının gerçek koda bağlanmasını istedi; verdiği `RestClient` servis örneğini esas almamızı belirtti. Yeni Jenkins verisi DB'ye kaydedilmeyecek; akış Jenkins'ten oku → frontend'e gönder olacak. Mevcut `jenkins_base_url_ref` ve `jenkins_job_path` alanları genel proje ayarlarından düzeltilebilir kalmalı. Kullanıcının son netleştirmesine göre bağlantı yoksa Jenkins ayrıntısına geçiş verilmez. Bu onay Jenkins'e yazma/build tetikleme veya deployment kapsamı değildir. Uygulanan akış ve gerçek doğrulama sınırları STATUS'tadır.
+
 ## 2026-11-14 — Proje bazında kayıtlı GitHub bağlantısı
 
 **Kullanıcı isteği ve onaylanan kararlar:** Kullanıcı, yeni proje eklerken veritabanında tokenı kayıtlı GitHub hesaplarının önerilmesini, mevcut bağlantının seçilebilmesini veya yeni token girilebilmesini istedi. Plan sorularında kapsamı **GitHub bağlantıları** olarak seçti; yerel repo/gönderilmemiş commit ve çalışan Docker sürümü eşlemesi sonraya kaldı. Açık depolarda tokensız erişimi ve bağlantı ekleme/yenileme/kullanılmayanı silme işlemlerinin aynı proje formunda bulunmasını seçti. Hazırlanan planın tamamını "uygula" diyerek onayladı.

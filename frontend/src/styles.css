@@ -8,6 +8,36 @@
   line-height: 1.5;
 }
 
+.integration-details-link,
+.integration-unavailable {
+  display: block;
+  margin-top: 14px;
+  font-size: 12px;
+}
+
+.integration-details-link {
+  font-weight: 600;
+}
+
+.integration-card:has(.integration-details-link) {
+  position: relative;
+}
+
+.integration-card:has(.integration-details-link):hover {
+  border-color: #24887c;
+}
+
+.integration-details-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.integration-unavailable {
+  color: #6f7f8b;
+}
+
 * {
   box-sizing: border-box;
 }
