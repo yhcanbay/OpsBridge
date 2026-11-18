@@ -24,6 +24,14 @@ async function saveProject(request) {
     return response.data
 }
 
+async function getDockerContainers(projectId, { signal } = {}) {
+    const response = await httpClient.get(`/projects/${projectId}/docker/containers`, {
+        signal,
+        timeout: 25_000
+    })
+    return response.data
+}
+
 async function updateProject(projectId, request) {
     const response = await httpClient.put(`/projects/${projectId}`, request, { timeout: 20_000 })
     return response.data
@@ -34,7 +42,10 @@ async function deleteProject(projectId) {
 }
 
 async function getIntegrationStatuses(projectId, { signal } = {}) {
-    const response = await httpClient.get(`/projects/${projectId}/integrations`, { signal })
+    const response = await httpClient.get(`/projects/${projectId}/integrations`, {
+        signal,
+        timeout: 15_000
+    })
     return response.data
 }
 
@@ -52,6 +63,7 @@ export const projectService = {
     getAllProjects,
     getProjectById,
     getJenkinsJobInfo,
+    getDockerContainers,
     saveProject,
     updateProject,
     deleteProject,

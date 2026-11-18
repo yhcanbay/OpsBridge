@@ -288,18 +288,17 @@ function ProjectForm({ project, onSave, onClose }) {
                                         aria-invalid={Boolean(fieldErrors.containerLabelSelector)}
                                         aria-describedby="containerLabelSelector-hint"
                                     />
-                                    {fieldErrors.containerLabelSelector && (
-                                        <small
-                                            id="containerLabelSelector-hint"
-                                            className={
-                                                fieldErrors.containerLabelSelector
-                                                    ? 'field-error'
-                                                    : 'muted'
-                                            }
-                                        >
-                                            {fieldErrors.containerLabelSelector}
-                                        </small>
-                                    )}
+                                    <small
+                                        id="containerLabelSelector-hint"
+                                        className={
+                                            fieldErrors.containerLabelSelector
+                                                ? 'field-error'
+                                                : 'muted'
+                                        }
+                                    >
+                                        {fieldErrors.containerLabelSelector ||
+                                            'Örnek: com.docker.compose.project=personal_task_app'}
+                                    </small>
                                 </label>
                             </div>
                             <div className="span-2">

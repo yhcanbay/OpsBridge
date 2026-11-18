@@ -20,8 +20,9 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 - GitHub branch listesi ve seçilen branch'in sayfalanmış commit geçmişi; SHA, mesaj, yazar ve tarih.
 - Kayıtlı GitHub hesap/token bağlantıları; proje eklerken bağlantı seçimi, yeni token ekleme, yenileme ve kullanılmayan bağlantıyı silme.
 - Jenkins bağlantı kontrolü ve ayrıntı ekranı; son/seçili build, aşamalar, geçmiş, commit/değişiklik ve yayımlanmış test raporu özeti.
+- Docker bağlantı kontrolü ve Compose projesine ait container’ların çalışma, sağlık, image, kapanma ve port bilgileri.
 
-**Jenkins verisi salt okunur; build başlatılmaz.** Jenkins kartı job erişimini kontrol eder ve yalnız `CONNECTED` durumunda ayrıntı ekranına geçiş verir. Docker/health henüz bağlanmadı. “Aktif profil” veya başarılı build, uygulamanın şu anda sağlıklı olduğu anlamına gelmez. `SECURITY_VIEW` tanımlanabilir; güvenlik rapor ekranı henüz yoktur.
+**Jenkins ve Docker verisi salt okunur.** Jenkins kartı job erişimini, Docker kartı yerel Docker Engine bağlantısını kontrol eder. Bağlı kartlar ilgili ayrıntı ekranını açar. HTTP Health kartı profil durumunu gösterir. `SECURITY_VIEW` profil yetenekleri arasında tanımlanabilir.
 
 ## Klasör yapısı
 
@@ -76,6 +77,14 @@ Jenkins bağlantısı için proje detayındaki **Profili düzenle → Devam et**
 Jenkins kimlik doğrulaması gerekiyorsa `.env` içindeki `JENKINS_USERNAME` ve `JENKINS_API_TOKEN` değerlerini birlikte tanımlayın. `JENKINS_BASE_URL` bu tokenın gönderilebileceği ana adrestir; ek adresler `JENKINS_ALLOWED_BASE_URLS` içinde virgülle ayrılır. Ortam ayarı değiştiğinde backend yeniden başlatılır. Yerel backend host Jenkins'e `http://localhost:8081`, Docker backend ise `http://host.docker.internal:8081` gibi container'dan erişilebilen adresle bağlanır.
 
 Bağlantı doğrulandığında projelerdeki **Jenkins** kartına tıklayın. `/projects/{id}/jenkins` ekranı açılır; **Yenile** yeniden okur, geçmişteki build numarası o çalışmayı seçer. Kurulum, hata durumları, aşama/test raporu gereksinimleri ve kısa kod akışı [Jenkins görünürlüğü belgesinde](docs/JENKINS_VISIBILITY.md).
+
+## Docker bağlantısını kullanma
+
+1. Docker Desktop veya Docker Engine çalışırken OpsBridge backend’ini [yerel geliştirme](#yerel-geliştirme--spring-boot-ve-react-ayrı) adımlarındaki gibi aynı makinede başlatın. Yerel bağlantı otomatik bulunamazsa `.env` içinde `OPSBRIDGE_DOCKER_HOST` ayarlayıp backend’i yeniden başlatın. Linux için örnek `unix:///var/run/docker.sock`, Windows Docker Desktop için örnek `npipe:////./pipe/dockerDesktopLinuxEngine`. Uygulamanın Docker erişimi yerel socket veya named pipe ile sınırlıdır.
+2. Proje profilini etkinleştirin, **Container görüntüleme** yeteneğini seçin ve **Container label seçicisi** alanını ayarlayın. Hazır Personal_Task_App profilinde `com.docker.compose.project=personal_task_app` değeri bulunur.
+3. Proje ayrıntısındaki **Docker ayrıntıları** bağlantısını açın. Tablodaki servis adına tıklayarak ayrıntılarını görün. **Yenile**, son durumu Docker’dan tekrar okur.
+
+Admin oturumuyla açılan `GET /api/projects/{id}/docker/containers` adresinde servis, profilin Compose etiketiyle çalışan ve durmuş container’ları listeler. Ardından her container’ı inceleyip ekrana gereken alanları döndürür. Mevcut Compose kurulumunda backend container’ına host Docker socket'i bağlanmaz. Docker izleme için bu aşamada yerel backend çalıştırma yolu kullanılır.
 
 ## Hızlı kurulum — Docker Compose
 
@@ -168,8 +177,10 @@ Bu portlar referans uygulamanın 5173/8080/5432 portlarından ve Jenkins'in 8081
 | POST | `/api/auth/logout` | Oturumu sonlandır; başarılıysa 204 |
 | GET / POST | `/api/projects` | Listele / oluştur |
 | GET / PUT / DELETE | `/api/projects/{id}` | Görüntüle / güncelle / sil |
-| GET | `/api/projects/{id}/integrations` | Adapter başlangıç durumları |
+| GET | `/api/projects/{id}/integrations` | Projenin bağlantı durumları |
 | GET | `/api/projects/{id}/git?branch=main&page=1&branchPage=1` | GitHub branch ve commit geçmişi; branch verilmezse dönen ilk branch |
+| GET | `/api/projects/{id}/jenkins` | Jenkins çalışma ve build ayrıntıları |
+| GET | `/api/projects/{id}/docker/containers` | Compose projesine ait container’ların listesi ve ayrıntıları |
 | GET | `/actuator/health` | OpsBridge'in kendi sağlığı; yalnızca özet |
 
 CSRF endpoint'inden alınan token, yanıttaki `headerName` ile POST/PUT/DELETE isteklerine eklenir. Aynı oturum cookie'si korunur. Girişten sonra ve çıkıştan sonraki yeni girişte token yeniden alınır. React bu akışı yönetir; parola veya oturum token'ı `localStorage` içine yazılmaz. [Spring Security CSRF ve JavaScript](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
@@ -226,4 +237,4 @@ Gerçekte yapılan kontroller ve ortam sınırları [.wiki/STATUS.md](.wiki/STAT
 
 Kullanılan Jenkins, `http://localhost:8081` üzerindeki mevcut Windows servisidir; job yolu `taskapp-cicd`, branch `main`. Kullanıcı bu Jenkins'te test yaparken servis/job/ayar değiştirilmez ve referans uygulamaya eşzamanlı Compose/deploy uygulanmaz. Ayrı Docker Jenkins tanımı mevcut servisin yerine başlatılmaz. Güncel ortam ayrımı ve doğrulama sınırları teknik envanterde kayıtlıdır.
 
-1. haftanın uygulama temeli hazırlandıktan sonra önerilen devam işi, Personal_Task_App'i Docker ile gerçekten çalıştırmak ve mevcut Jenkins job yolunu doğrulamaktır. Gerçek Jenkins/Docker/health bağlantıları sonraki kapsamdır. Ayrıntılı RBAC, JWT yenileme, tarama, security gate ve Kubernetes bu başlangıç uygulamasında bulunmaz; gelecekteki kapsam kararları ayrıca ele alınır.
+Personal_Task_App'in canlı Docker görünümü ve Jenkins job erişimi [proje durum kaydından](.wiki/STATUS.md) takip edilir.

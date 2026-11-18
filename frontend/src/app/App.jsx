@@ -5,6 +5,7 @@ import LoginPage from '../pages/LoginPage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
 import ProjectsPage from '../pages/ProjectsPage.jsx'
 import JenkinsDetailsPage from '../pages/JenkinsDetailsPage.jsx'
+import DockerDetailsPage from '../pages/DockerDetailsPage.jsx'
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                     <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/projects/:projectId" element={<ProjectsPage />} />
                     <Route path="/projects/:projectId/jenkins" element={<JenkinsDetailsPage />} />
+                    <Route path="/projects/:projectId/docker" element={<DockerDetailsPage />} />
                 </Route>
             </Route>
             <Route path="*" element={<NotFoundPage />} />

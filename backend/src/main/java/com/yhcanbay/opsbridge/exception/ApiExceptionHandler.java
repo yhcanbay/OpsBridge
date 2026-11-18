@@ -17,6 +17,15 @@ import com.yhcanbay.opsbridge.enums.IntegrationState;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(DockerIntegrationException.class)
+    public ProblemDetail dockerError(DockerIntegrationException exception) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        if (exception.getState() == IntegrationState.UNREACHABLE) {
+            status = HttpStatus.BAD_GATEWAY;
+        }
+        return ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+    }
+
     @ExceptionHandler(JenkinsException.class)
     public ProblemDetail jenkinsError(JenkinsException exception) {
         HttpStatus status = HttpStatus.BAD_GATEWAY;

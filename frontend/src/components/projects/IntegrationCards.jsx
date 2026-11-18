@@ -35,22 +35,25 @@ function IntegrationCards({ project }) {
                     </span>
                     <p>{item.message}</p>
                     <small className="muted">
-                        Son başarılı veri:{' '}
+                        {item.integration === 'Docker'
+                            ? 'Son başarılı bağlantı'
+                            : 'Son başarılı veri'}
+                        :{' '}
                         {item.lastSuccessfulFetchAt
                             ? new Date(item.lastSuccessfulFetchAt).toLocaleString('tr-TR')
                             : 'Henüz yok'}
                     </small>
-                    {item.integration === 'Jenkins' &&
+                    {(item.integration === 'Jenkins' || item.integration === 'Docker') &&
                         (item.state === 'CONNECTED' ? (
                             <Link
                                 className="integration-details-link"
-                                to={`/projects/${project.id}/jenkins`}
+                                to={`/projects/${project.id}/${item.integration.toLowerCase()}`}
                             >
-                                Jenkins ayrıntıları ↗
+                                {item.integration} ayrıntıları ↗
                             </Link>
                         ) : (
                             <span className="integration-unavailable">
-                                Ayrıntılar için Jenkins bağlantısı gerekli.
+                                Ayrıntılar için {item.integration} bağlantısı gerekli.
                             </span>
                         ))}
                 </article>

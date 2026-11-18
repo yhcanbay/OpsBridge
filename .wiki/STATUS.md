@@ -1,6 +1,26 @@
 # Güncel durum ve devam noktası
 
-Son güncelleme: **2026-11-14 — Europe/Istanbul**
+Son güncelleme: **2026-11-18 — Europe/Istanbul**
+
+## 2026-11-18 — Docker sayfasının yerel Engine okumasına bağlanması
+
+**Kullanıcı isteği:** Önceki Docker tasarımı kodlanabilir. Paylaşılan docker-java öğreticisindeki controller → service → DTO akışı izlenmeli ve uygulama giriş düzeyinde takip edilebilir kalmalı. İlk kullanım Personal_Task_App’e ait container’ların salt okunur görünümüdür.
+
+**Uygulama:** [Docker servisi](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/DockerServiceImpl.java), mevcut `containerLabelSelector` alanını kullanır. Örnek profilde değer `com.docker.compose.project=personal_task_app`. Admin oturumu altındaki `GET /api/projects/{id}/docker/containers`, aktif ve `CONTAINER_VIEW` yetenekli projelerde önce `listContainersCmd()` ile eşleşen çalışan/duran container’ları listeler. Ardından `inspectContainerCmd()` ile her birini okur ve [mapper](../backend/src/main/java/com/yhcanbay/opsbridge/mapper/DockerMapper.java) ekranın gerektirdiği alanları DTO’ya çevirir. Listeleme sırasında kaldırılan container atlanır. Engine’e erişim sorunu 502, eşleşen container olmaması boş liste döndürür. Mevcut profil alanları kullanıldığı için migration gerekmedi.
+
+**Ekran ve kurulum:** [Docker sayfası](../frontend/src/pages/DockerDetailsPage.jsx), tasarımdaki özet, tablo, çalışma durumu filtresi ve seçili container ayrıntısını gerçek API yanıtından oluşturur. Tarihler İstanbul saatine dönüştürülür. Docker kartı geçerli profil ve başarılı Engine bağlantı kontrolüyle açılır. Docker erişimi backend’de docker-java 3.7.1 ile yerel Unix socket veya Windows named pipe üzerinden sağlanır. `OPSBRIDGE_DOCKER_HOST` gerektiğinde değiştirilebilir. İlk kurulum yolu [README](../README.md#docker-bağlantısını-kullanma) içindeki yerel backend akışıdır. Üretim Compose’a socket mount eklenmedi.
+
+**Doğrulama:** Maven verify **100 test**, frontend **43 test**, frontend biçim kontrolü ve build başarılı. Compose yapılandırma kontrolü başarılı, kullanıcı Docker config erişim uyarısı var. Chrome’da gerçek Spring Boot ve docker-java istemcisi geçici H2 ve Windows named pipe üzerinden yanıt veren yerel Docker test sunucusuyla çalıştı. Admin oturumu, kart geçişi, filtre, detay, çıkış kodu ve port, yenilemede 502, boş liste ve 320–1440 px görünüm geçti. İstemci yalnızca 7 GET gönderdi ve liste isteklerinin hepsinde doğru Compose etiketi kullanıldı. Görseller ve kontrol script’i Git dışında `.cache/docker-integration/` ve `.cache/docker-browser-qa.mjs` altında.
+
+**Canlı ortam:** Docker CLI, varsayılan Engine ve Docker Desktop Linux Engine named pipe’larını bulamadı. Personal_Task_App’in canlı verisi, gerçek Engine erişimi ve üretim dağıtımı sonraki ortam doğrulamasına açık. Mevcut veritabanı, gerçek Jenkins servisi ve referans uygulama üzerinde işlem yapılmadı.
+
+## 2026-11-18 — Docker ayrıntı sayfası görsel taslağı
+
+**Kullanıcı isteği:** Jenkins ekranını temel alan bir Docker sayfası tasarımı. Servis ve container kimliği, çalışma ve sağlık durumu, image referansı ve kimliği, başlangıç/bitiş ve çıkış kodu, sunucu → container portları görünmeli. Bu tur yalnızca görsel tasarım kapsamındadır.
+
+**Hazırlanan taslak:** [Docker sayfası görseli](../docs/docker-sayfa-tasarimi.png), mevcut Jenkins ekranının yerleşimini örnek alır. Üstte çalışma özeti, altta container listesi ve seçili container’ın ayrıntıları bulunur. Personal_Task_App örneğinde `backend` durmuş olarak gösterilir. Tabloda çalışan servislerin port eşlemeleri, ayrıntı kartında seçili container’ın image kimliği ve kapanma bilgileri görünür. Çalışma durumu ve sağlık kontrolü ayrı alanlardır. Görseldeki durumlar, kimlikler ve zamanlar örnek veridir.
+
+**Doğrulama ve devam:** Görsel, istenen alanlar ve Jenkins yerleşimi açısından incelendi. Docker bağlantısı, sayfa kodu ve yönlendirme bu taslakla uygulanmadı. Canlı servis sorgusu, test veya dağıtım çalıştırılmadı. Tasarım kullanıcı incelemesine açıktır.
 
 ## 2026-11-14 — Jenkins 401/403 erişim hatasının incelenmesi
 
@@ -204,7 +224,7 @@ Sekiz haftalık planın **1. haftasından yola çıkarak basit Spring Boot–Rea
 - [ADMIN oturumu](../backend/src/main/java/com/yhcanbay/opsbridge/config/SecurityConfig.java): environment üzerinden hesap, BCrypt doğrulama, session cookie, açık CSRF koruması. JWT araştırıldı; mevcut aynı-origin yönetim paneli için session akışı korundu, gerekçesi rehberde.
 - [Proje profili API'si](../backend/src/main/java/com/yhcanbay/opsbridge/controller/impl/ProjectControllerImpl.java): genel CRUD, UUID, alan doğrulama ve capability kümesi. Controller/service/repository/entity, request/response DTO, mapper, enum, config ve exception paketleri ayrı. Controller ve servis arayüzlerinin uygulamaları `impl/` altında. Entity DTO bilmez; controller entity döndürmez. Dönüşümler açık mapper sınıflarında.
 - [Flyway migration'ları](../backend/src/main/resources/db/migration/): PostgreSQL şeması ve bir Personal_Task_App profili. V1/V2 değiştirilmedi; yeni V3 boş ad/ortam ve tanımsız capability için CHECK kuralları ekler. Silinen örnek profil her başlangıçta tekrar eklenmez.
-- [Bağlantı durumları](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java): 11 Kasım sadeleştirmesiyle Jenkins, Docker ve HTTP health durumları doğrudan serviste üretilir. Dış istek yapılmaz; `NOT_CONNECTED`, `NOT_SUPPORTED`, `DISABLED` döner, son başarılı veri zamanı yoktur.
+- [Bağlantı durumları](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java): Jenkins job ve yerel Docker Engine erişimi ilgili servislerde sorgulanır. HTTP Health kartı profil durumundan üretilir.
 - [Compose](../compose.yaml), iki Dockerfile, Nginx/Vite API proxy, [.env.example](../.env.example), [kurulum README'si](../README.md) ve [referans uygulama envanteri](../docs/PERSONAL_TASK_APP.md).
 - [Geliştirme rehberi](../docs/DEVELOPMENT_GUIDE.md): Spring/DTO/mapper, session/JWT, React Router/Axios, PostgreSQL/JPA/Flyway tercihleri ve resmî kaynaklar. Frontend app/api/components/constants/context/hooks/layouts/pages/services olarak ayrıldı; Prettier ve `.editorconfig` kullanılıyor. Güncel yazım ölçütü 7 Kasım'dan beri [Sozluk_Uygulamasi referansı](../docs/CODING_STYLE.md); önceki AOSP biçimi zorunlu güncel standart değil.
 - [Üç beceri](../skills/): `backend-developer`, `frontend-developer`, `database-developer`. Doğrulayıcıdan geçti ve `C:\Users\yhcan\.codex\skills` altına kuruldu. Depodaki kopyalar inceleme için tutulur; iki konum otomatik senkron değil. Kök AGENTS.md kullanıcı kod tercihlerini ve bu kaynakları belirtir.
@@ -228,12 +248,12 @@ Varsayılan OpsBridge portları: arayüz **5174**, backend **8082**, DB **5433**
 - 4 Kasım'daki Docker erişim sorunu giderildi. 5 Kasım'da OpsBridge backend/frontend image build ve tam Compose deployment başarılı oldu. Referans uygulamanın kurulum denemesi kullanıcı testi nedeniyle iptal edildi; onun temiz ortam teslim kanıtı henüz yok.
 - Windows Maven wrapper'ın ilk Maven indirmesi ağ/bağlantı hatası verdi. Wrapper dosyaları mevcut; başarılı testler kurulu `mvn` ile yapıldı. README bu ayrımı belirtir.
 - Yerleşik Node REPL sunulmadı; gerçek Chrome doğrulaması geçici Playwright kitaplığıyla tamamlandı. Bu kontrol Chrome ile sınırlı; farklı tarayıcı/cihazlar ve kapsamlı erişilebilirlik denetimi yapılmadı.
-- Personal_Task_App uygulama/pipeline/Compose dosyaları değiştirilmedi. Jenkins 8081/job/branch ve mevcut Compose proje label'ı doğrulandı. Token, webhook/ngrok ve canlı sistemler arası erişim açık. Örnek profilde job yolu otomatik güncellenmedi; gerçek Jenkins/health adapter bağlantısı yok.
-- Gerçek Jenkins/Docker/health veri çekme, build tetikleme, audit, ayrıntılı RBAC ve tarama/security gate henüz yok. “Aktif profil” canlı sistemin sağlıklı olduğunu iddia etmez.
+- Personal_Task_App için Jenkins 8081/job/branch ve Compose proje etiketi geçmiş incelemede görüldü. Kimlik doğrulanmış Jenkins erişimi, webhook/ngrok, canlı Docker okuması ve sistemler arası erişim ortamda doğrulanmayı bekliyor.
+- HTTP Health verisi, build tetikleme, audit, ayrıntılı RBAC ve tarama/security gate açık ürün kapsamlarıdır.
 - Commit, push veya haricî yayın yapılmadı.
 
 ## Önerilen devam noktası
 
-1. Kullanıcının yeni önceliği doğrultusunda [yerel Git/GitHub commit ve branch görünürlüğünü](../docs/GIT_VISIBILITY.md) ele al. Bu turdaki DB/adapter önerilerini kullanıcı kabulü veya uygulanmış özellik sayma. 8081 Jenkins ve referans deployment'ına müdahale etmeme sınırı devam eder.
-2. OpsBridge'in Docker/tarayıcı/kalıcılık adımı tamamlandı; gerekçe olmadan tekrarlama. Git ara adımı sonrasında, kullanıcının Jenkins testi de tamamlandıysa [envanterdeki çalışma sınırına](../docs/PERSONAL_TASK_APP.md) uyarak referans uygulamanın DB/API/arayüz ve başarılı deployment kanıtını doğrulamak. Kimlik doğrulanmış Jenkins API ve sistemler arası erişim hâlâ açık; 1. haftanın tümü tamamlanmış değil.
-3. Ardından [devam planındaki](../docs/ROADMAP.md) referans lint/JUnit, image kimliği/label/health pipeline işleri; sonra gerçek adapter'lar ve build tetikleme akışı. Güvenlik geliştirmeleri vizeden sonra; Kubernetes bu teslimin dışında.
+1. Yerel Docker Engine erişilebilir olduğunda mevcut Personal_Task_App profilinin etiketiyle salt okunur Docker ayrıntı ekranını canlı veride doğrula. [Kurulum](../README.md#docker-bağlantısını-kullanma)
+2. Kullanıcının Jenkins testi tamamlandığında [envanterdeki çalışma sınırına](../docs/PERSONAL_TASK_APP.md) uyarak referans DB/API/arayüz ve deployment zincirini doğrula. Kimlik doğrulanmış Jenkins API erişimini ayrıca kontrol et.
+3. Sonraki ürün kapsamını kullanıcının yeni önceliğiyle seç. [Devam planı](../docs/ROADMAP.md)

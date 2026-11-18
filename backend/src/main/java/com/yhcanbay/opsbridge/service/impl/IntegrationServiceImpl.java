@@ -14,6 +14,7 @@ import com.yhcanbay.opsbridge.enums.Capability;
 import com.yhcanbay.opsbridge.enums.IntegrationState;
 import com.yhcanbay.opsbridge.exception.ProjectNotFoundException;
 import com.yhcanbay.opsbridge.repository.ProjectRepository;
+import com.yhcanbay.opsbridge.service.IDockerService;
 import com.yhcanbay.opsbridge.service.IIntegrationService;
 import com.yhcanbay.opsbridge.service.IJenkinsService;
 
@@ -25,6 +26,7 @@ public class IntegrationServiceImpl implements IIntegrationService {
 
     private final ProjectRepository projectRepository;
     private final IJenkinsService jenkinsService;
+    private final IDockerService dockerService;
 
     @Override
     public List<IntegrationStatusResponse> getIntegrationStatuses(UUID projectId) {
@@ -39,14 +41,13 @@ public class IntegrationServiceImpl implements IIntegrationService {
 
         boolean jenkinsSupported = capabilities.contains(Capability.BUILD_VIEW)
                 || capabilities.contains(Capability.BUILD_TRIGGER);
-        boolean dockerSupported = capabilities.contains(Capability.CONTAINER_VIEW);
         boolean healthSupported = capabilities.contains(Capability.HEALTH_VIEW);
 
         IntegrationStatusResponse jenkinsStatus = createIntegrationStatus(project, "Jenkins", jenkinsSupported);
         if (project.isEnabled() && jenkinsSupported) {
             jenkinsStatus = jenkinsService.getJenkinsConnectionStatus(project);
         }
-        IntegrationStatusResponse dockerStatus = createIntegrationStatus(project, "Docker", dockerSupported);
+        IntegrationStatusResponse dockerStatus = dockerService.getDockerConnectionStatus(project);
         IntegrationStatusResponse healthStatus = createIntegrationStatus(project, "HTTP Health", healthSupported);
 
         List<IntegrationStatusResponse> dtoList = new ArrayList<>();

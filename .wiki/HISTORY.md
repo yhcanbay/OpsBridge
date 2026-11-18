@@ -2,6 +2,14 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-18 — Salt okunur Docker ekranı uygulandı
+
+Kullanıcı görsel tasarımdan kodlamaya geçilmesini ve paylaştığı docker-java örneğine göre anlaşılır bir akış kurulmasını istedi. Daha önce boş duran proje bazlı Docker kartına Engine bağlantı kontrolü ve ayrıntı ekranı eklendi. Liste, kullanıcının düzenleyebildiği mevcut Compose etiketiyle sınırlandı. Docker list/inspect çıktısından servis/container, çalışma ve sağlık, image, zaman/çıkış ve yayımlanan port bilgileri alındı. Geçici named pipe yanıtlarıyla Chrome’da uçtan uca akış, filtre ve hata durumları doğrulandı. Maven verify 100, frontend 43 test geçti. Personal_Task_App’in canlı Docker Engine erişimi bu ortamda doğrulanamadı. Kurulum ve devam koşulları STATUS ile README’de.
+
+## 2026-11-18 — Docker sayfasının görsel tasarımı
+
+Kullanıcı Docker ekranında container kimliği, çalışma ve sağlık durumu, image bilgisi, başlangıç/kapanma bilgileri ve portları görmek istedi. Jenkins sayfası görsel referans olarak kullanıldı. [Masaüstü taslağı](../docs/docker-sayfa-tasarimi.png), çalışma özetiyle birlikte container tablosu ve seçilen container için ayrıntı kartı sunuyor. Görselde örnek veriler kullanıldı. Bu çalışma görsel tasarım aşamasıdır. Uygulama kodu yazılmadı ve Docker verisi çekilmedi.
+
 ## 2026-11-14 — Jenkins erişiminde eksik kimlik bilgisi bulgusu
 
 Kullanıcı `localhost:8081` / `job/taskapp-cicd/` ayarlarıyla 401/403 mesajı aldığını bildirdi. Yol biçimi doğru işlendiği görüldü; aynı job API'sine anonim GET 403 döndü ve Jenkins 2.541.3 erişilebilirliği doğrulandı. Proje `.env` dosyasında Jenkins kullanıcı/token ayarları boş veya yoktu; gerçek değerler çıktılanmadı. Mevcut kod bu durumda anonim istek gönderir. Kullanıcıya Jenkins kullanıcı API tokenı ile ortam ayarı ve OpsBridge backend yeniden başlatma adımı anlatıldı. Çalışan IDE sürecinin ortamı ve kimlik doğrulanmış istek doğrulanmadı. Kod, `.env`, Jenkins güvenlik ayarları veya build'ler değiştirilmedi.

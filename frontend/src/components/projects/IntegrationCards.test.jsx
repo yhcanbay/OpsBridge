@@ -46,3 +46,25 @@ describe('Jenkins bağlantı kartı', () => {
         }
     )
 })
+
+it('Docker bağlantısı hazır olduğunda projenin Docker sayfasını açar', () => {
+    useIntegrations.mockReturnValue({
+        items: [
+            {
+                integration: 'Docker',
+                state: 'CONNECTED',
+                message: 'Docker Engine bağlantısı hazır.'
+            }
+        ],
+        isLoading: false,
+        error: ''
+    })
+    render(
+        <MemoryRouter>
+            <IntegrationCards project={{ id: 'project-1' }} />
+        </MemoryRouter>
+    )
+    expect(screen.getByRole('link', { name: 'Docker ayrıntıları ↗' }).getAttribute('href')).toBe(
+        '/projects/project-1/docker'
+    )
+})
