@@ -1,6 +1,6 @@
 # Kullanıcı ve ürün bağlamı
 
-Son güncelleme: **2026-11-14 — Europe/Istanbul**
+Son güncelleme: **2026-11-19 — Europe/Istanbul**
 
 ## 2026-11-14 — Jenkins okuma kapsamı ve düzenlenebilir proje ayarları
 
@@ -63,7 +63,9 @@ Codex önerisi: backend'de yerel Git ve GitHub için ayrı okuma adapter'ları; 
 
 Bu modelde yerel Git deposu, dosya yolları ve Docker kaynakları sunucuya aittir. GitHub okuma kapsamı devam eder; gönderilmemiş commit/branch yalnızca sunucudaki yerel depoda varsa görünür. Uzak tarayıcının bulunduğu bilgisayardaki kaynaklar kendiliğinden okunmaz. Farklı sunuculara merkezi SSH/agent bağlantısı geliştirilmeyecek. Mevcut geliştirme makinesi bu sunucu modelinin deneme ortamıdır; her hedef sunucu kendi OpsBridge kurulumuna sahip olur.
 
-Kaynaklarda mevcut Compose DB/API/arayüzü tek kurulumda toplar ve host portlarını `127.0.0.1` ile sınırlar. Admin session/CSRF vardır; gerçek Git/Jenkins/Docker/health entegrasyonları ve dış URL erişimi henüz uygulanmadı. Mimari karar bunların çalıştığına dair kanıt değildir.
+Kaynaklarda mevcut Compose DB, API ve arayüzü tek kurulumda toplar. Host portları `127.0.0.1` ile sınırlıdır. Dış URL yayını sonraki adımdır. Entegrasyonların durumu ve canlı doğrulama sınırları [STATUS](STATUS.md) kaydında tutulur.
+
+**2026-11-19 erişim kararı:** OpsBridge'de tek admin hesabı ve tek giriş akışı devam eder. Kullanıcı Spring Security JWT uygulamasının `C:\Ders\KisiselDerslerim\jwt` ders projesine dayanmasını istedi. Yol haritasındaki ek roller ilerisi için öneri durumundadır. [Geliştirme rehberi](../docs/DEVELOPMENT_GUIDE.md#tek-admin-hesabı-ve-jwt)
 
 **2026-11-07 karşılaştırma sonrası kullanıcı açıklaması:** Mimari/CI-CD metniyle yaptığımız karşılaştırmayı okudu, çakışan bir durum görmediğini belirtti ve mevcut durumu güncellememizi istedi. İki uygulama ayrımı, Jenkins'in otomasyon ve OpsBridge'in takip/yönetim rolü ile push → main → yapılandırılmış Jenkins → test/build → deploy hedef akışı, açıklanan sınırlarla mevcut modelle uyumlu kabul edildi. Bu, tam iki container, gelecekte farklı sunuculara geçiş, proje adının DevOpsTakip olarak değiştirilmesi veya henüz doğrulanmamış entegrasyonların tamamlandığı kararı değildir. Güncel özet ve sıradaki Git görünürlüğü işi STATUS/roadmap'te tutulur.
 

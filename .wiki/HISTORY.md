@@ -2,6 +2,10 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-19 — Tek admin girişi Spring Security JWT’ye geçti
+
+Kullanıcı mevcut tek admin hesabı için `C:\Ders\KisiselDerslerim\jwt` projesini referans gösterdi. Sunucu oturumundan JWT çerezine geçildi. Ders projesindeki imzalama ve filtre yapısı OpsBridge’in mevcut BCrypt, CSRF ve çıkış akışına uyarlandı. Seçilen ek özellik, GitHub geçmişinden tam commit SHA’sını kopyalama oldu. Otomatik test ve yerel Chrome doğrulamasının ayrıntıları [STATUS](STATUS.md#2026-11-19--tek-admin-girişi-jwt-ile-korunuyor) kaydında.
+
 ## 2026-11-19 — Proje listesi ve detay arayüzü ayrıldı
 
 Kullanıcı planı onayladı ve profil düzenlemesi için tek pencereyi seçti. Ana ekran proje adlarına indirildi, proje detayları ayrı sayfaya taşındı ve GitHub geçmişi açılabilir commit satırlarıyla sıkılaştırıldı. Otomatik test ve Chrome doğrulama sonuçları [STATUS](STATUS.md#2026-11-19--proje-arayüzünün-sadeleştirilmesi) kaydında.

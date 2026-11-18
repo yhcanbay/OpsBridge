@@ -1083,6 +1083,13 @@ small {
   white-space: pre-wrap;
 }
 
+.git-commit-sha {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
 @media (min-width: 1500px) {
   .workspace-content {
     padding-top: 48px;

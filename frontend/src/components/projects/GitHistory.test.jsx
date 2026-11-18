@@ -33,7 +33,10 @@ beforeEach(() => {
     projectService.getGitHistory.mockResolvedValue(history)
 })
 
-afterEach(cleanup)
+afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+})
 
 describe('GitHub geçmişi', () => {
     it('branch, commit, tam SHA ve son başarılı okuma zamanını gösterir', async () => {
@@ -61,6 +64,28 @@ describe('GitHub geçmişi', () => {
 
         expect(details.open).toBe(true)
         expect(screen.getByText(/Branch sayfalaması da eklendi/)).toBeTruthy()
+        expect(screen.getByText(history.commits[0].sha)).toBeTruthy()
+    })
+
+    it('commit ayrıntısından tam SHA’yı panoya kopyalar', async () => {
+        const writeText = vi.fn().mockResolvedValue()
+        vi.stubGlobal('navigator', { clipboard: { writeText } })
+        render(<GitHistory projectId="project-1" />)
+        fireEvent.click((await screen.findByText('Git geçmişi eklendi')).closest('summary'))
+        fireEvent.click(screen.getByRole('button', { name: 'SHA’yı kopyala' }))
+
+        expect(writeText).toHaveBeenCalledWith(history.commits[0].sha)
+        expect(await screen.findByText('SHA kopyalandı.')).toBeTruthy()
+    })
+
+    it('panoya yazamadığında tam SHA’yı elle kopyalamaya açık tutar', async () => {
+        const writeText = vi.fn().mockRejectedValue(new Error('Panoya erişim reddedildi.'))
+        vi.stubGlobal('navigator', { clipboard: { writeText } })
+        render(<GitHistory projectId="project-1" />)
+        fireEvent.click((await screen.findByText('Git geçmişi eklendi')).closest('summary'))
+        fireEvent.click(screen.getByRole('button', { name: 'SHA’yı kopyala' }))
+
+        expect(await screen.findByText(/SHA kopyalanamadı/)).toBeTruthy()
         expect(screen.getByText(history.commits[0].sha)).toBeTruthy()
     })
 

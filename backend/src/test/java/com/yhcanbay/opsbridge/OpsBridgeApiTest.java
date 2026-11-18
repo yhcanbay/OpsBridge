@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -14,20 +13,26 @@ import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import javax.crypto.SecretKey;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerCmd;
@@ -36,7 +41,10 @@ import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.PingCmd;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.core.DockerClientConfig;
+import com.yhcanbay.opsbridge.jwt.JwtService;
 
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -48,6 +56,7 @@ class OpsBridgeApiTest {
 
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper json;
+    @Autowired JwtService jwtService;
 
     @MockitoBean HttpClient gitHubHttpClient;
     @MockitoBean DockerClient dockerClient;
@@ -69,51 +78,79 @@ class OpsBridgeApiTest {
     void invalidPasswordIsRejected() throws Exception {
         mvc.perform(
                         post("/api/auth/login")
-                                .with(csrf())
+                                .with(validCsrf())
                                 .param("username", "admin")
                                 .param("password", "wrong"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(cookie().doesNotExist("OPSBRIDGE_AUTH"));
     }
 
     @Test
-    void loginAndLogoutUseRealSessionAndCsrfTokens() throws Exception {
-        MockHttpSession session = login();
-        mvc.perform(get("/api/auth/me").session(session))
+    void loginAndLogoutUseRealJwtAndCsrfCookies() throws Exception {
+        mvc.perform(post("/api/auth/login").param("username", "admin")
+                        .param("password", "integration-test-only"))
+                .andExpect(status().isForbidden());
+
+        Cookie authCookie = login();
+        Cookie otherLogin = login();
+        MvcResult csrfResult = csrfToken();
+        Cookie csrfCookie = csrfResult.getResponse().getCookie("OPSBRIDGE_CSRF");
+        mvc.perform(get("/api/auth/me").cookie(authCookie, csrfCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("admin"))
-                .andExpect(jsonPath("$.role").value("ADMIN"));
+                .andExpect(jsonPath("$.role").value("ADMIN"))
+                .andExpect(cookie().doesNotExist("OPSBRIDGE_CSRF"))
+                .andExpect(result -> assertThat(result.getRequest().getSession(false)).isNull());
 
-        mvc.perform(post("/api/auth/logout").session(session)).andExpect(status().isForbidden());
-        JsonNode token = token(session);
+        mvc.perform(post("/api/auth/logout").cookie(authCookie)).andExpect(status().isForbidden());
+        JsonNode token = json.readTree(csrfResult.getResponse().getContentAsString());
         mvc.perform(
                         post("/api/auth/logout")
-                                .session(session)
+                                .cookie(authCookie, csrfCookie)
                                 .header(
                                         token.get("headerName").asText(),
                                         token.get("token").asText()))
-                .andExpect(status().isNoContent());
-        assertThat(session.isInvalid()).isTrue();
-        mvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized());
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge("OPSBRIDGE_AUTH", 0))
+                .andExpect(cookie().maxAge("OPSBRIDGE_CSRF", 0));
+        mvc.perform(get("/api/auth/me").cookie(authCookie)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/auth/me").cookie(otherLogin)).andExpect(status().isOk());
+    }
+
+    @Test
+    void malformedForeignAndExpiredTokensAreRejected() throws Exception {
+        SecretKey signingKey = (SecretKey) ReflectionTestUtils.getField(jwtService, "signingKey");
+        Instant expiredAt = Instant.now().minusSeconds(60);
+        String expiredToken = Jwts.builder().issuer("opsbridge").audience().add("opsbridge-api").and()
+                .id("expired-for-test").subject("admin").expiration(Date.from(expiredAt))
+                .signWith(signingKey, Jwts.SIG.HS256).compact();
+
+        for (String token : List.of("invalid-token", new JwtService().generateToken("admin"), expiredToken)) {
+            mvc.perform(get("/api/auth/me").cookie(new Cookie("OPSBRIDGE_AUTH", token)))
+                    .andExpect(status().isUnauthorized());
+        }
     }
 
     @Test
     void arbitraryProjectCanBeCreatedUpdatedReadAndDeletedAfterLogin() throws Exception {
-        MockHttpSession session = login();
+        Cookie authCookie = login();
         String body = project("Another_Application", "[\"BUILD_VIEW\"]", true);
         mvc.perform(
                         post("/api/projects")
-                                .session(session)
+                                .cookie(authCookie)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(body))
                 .andExpect(status().isForbidden());
 
-        JsonNode token = token(session);
+        MvcResult csrfResult = csrfToken();
+        Cookie csrfCookie = csrfResult.getResponse().getCookie("OPSBRIDGE_CSRF");
+        JsonNode token = json.readTree(csrfResult.getResponse().getContentAsString());
         String header = token.get("headerName").asText();
         String value = token.get("token").asText();
         MvcResult created =
                 mvc.perform(
                                 post("/api/projects")
-                                        .session(session)
+                                        .cookie(authCookie, csrfCookie)
                                         .header(header, value)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(body))
@@ -124,10 +161,10 @@ class OpsBridgeApiTest {
                         .andReturn();
         String id = json.readTree(created.getResponse().getContentAsString()).get("id").asText();
         String path = "/api/projects/" + id;
-        mvc.perform(get(path).session(session)).andExpect(status().isOk());
+        mvc.perform(get(path).cookie(authCookie)).andExpect(status().isOk());
         mvc.perform(
                         put(path)
-                                .session(session)
+                                .cookie(authCookie, csrfCookie)
                                 .header(header, value)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project("Renamed_Application", "[]", false)))
@@ -135,9 +172,9 @@ class OpsBridgeApiTest {
                 .andExpect(jsonPath("$.name").value("Renamed_Application"))
                 .andExpect(jsonPath("$.enabled").value(false))
                 .andExpect(jsonPath("$.capabilities").isEmpty());
-        mvc.perform(delete(path).session(session).header(header, value))
+        mvc.perform(delete(path).cookie(authCookie, csrfCookie).header(header, value))
                 .andExpect(status().isNoContent());
-        mvc.perform(get(path).session(session)).andExpect(status().isNotFound());
+        mvc.perform(get(path).cookie(authCookie)).andExpect(status().isNotFound());
     }
 
     @Test
@@ -258,7 +295,7 @@ class OpsBridgeApiTest {
         mvc.perform(get("/api/projects/" + REFERENCE_ID + "/git")).andExpect(status().isForbidden());
         mvc.perform(
                         post("/api/projects")
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project("Blocked", "[]", true)))
                 .andExpect(status().isForbidden());
@@ -316,14 +353,14 @@ class OpsBridgeApiTest {
     void invalidUrlsBlankNamesAndUnknownCapabilitiesAreRejected() throws Exception {
         mvc.perform(
                         post("/api/projects")
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project(" ", "[]", true)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fields.name").exists());
         mvc.perform(
                         post("/api/projects")
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         project("BadUrl", "[]", true)
@@ -334,7 +371,7 @@ class OpsBridgeApiTest {
                 .andExpect(jsonPath("$.fields.repositoryUrl").exists());
         mvc.perform(
                         post("/api/projects")
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         project("CredentialsInUrl", "[]", true)
@@ -344,7 +381,7 @@ class OpsBridgeApiTest {
                 .andExpect(status().isBadRequest());
         mvc.perform(
                         post("/api/projects")
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project("BadCapability", "[\"DOES_NOT_EXIST\"]", true)))
                 .andExpect(status().isBadRequest());
@@ -356,7 +393,7 @@ class OpsBridgeApiTest {
         MvcResult created =
                 mvc.perform(
                                 post("/api/projects")
-                                        .with(csrf())
+                                        .with(validCsrf())
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(project("Minimal", "[]", true)))
                         .andExpect(status().isCreated())
@@ -370,7 +407,7 @@ class OpsBridgeApiTest {
                 .andExpect(jsonPath("$[2].state").value("NOT_SUPPORTED"));
         mvc.perform(
                         put(path)
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project("Minimal", "[\"BUILD_TRIGGER\"]", true)))
                 .andExpect(status().isOk());
@@ -381,7 +418,7 @@ class OpsBridgeApiTest {
                 .andExpect(jsonPath("$[2].state").value("NOT_SUPPORTED"));
         mvc.perform(
                         put(path)
-                                .with(csrf())
+                                .with(validCsrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(project("Minimal", "[\"BUILD_TRIGGER\"]", false)))
                 .andExpect(status().isOk());
@@ -391,36 +428,57 @@ class OpsBridgeApiTest {
                 .andExpect(jsonPath("$[1].state").value("DISABLED"))
                 .andExpect(jsonPath("$[2].state").value("DISABLED"));
         mvc.perform(get(path + "/docker/containers")).andExpect(status().isBadRequest());
-        mvc.perform(delete(path).with(csrf())).andExpect(status().isNoContent());
+        mvc.perform(delete(path).with(validCsrf())).andExpect(status().isNoContent());
         mvc.perform(get(path + "/integrations")).andExpect(status().isNotFound());
     }
 
-    private MockHttpSession login() throws Exception {
-        MvcResult initial =
-                mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
+    private Cookie login() throws Exception {
+        MvcResult initial = csrfToken();
         JsonNode token = json.readTree(initial.getResponse().getContentAsString());
-        MockHttpSession session = (MockHttpSession) initial.getRequest().getSession(false);
+        Cookie csrfCookie = initial.getResponse().getCookie("OPSBRIDGE_CSRF");
         MvcResult result =
                 mvc.perform(
                                 post("/api/auth/login")
-                                        .session(session)
+                                        .cookie(csrfCookie)
                                         .header(
                                                 token.get("headerName").asText(),
                                                 token.get("token").asText())
                                         .param("username", "admin")
                                         .param("password", "integration-test-only"))
                         .andExpect(status().isNoContent())
+                        .andExpect(cookie().httpOnly("OPSBRIDGE_AUTH", true))
+                        .andExpect(cookie().sameSite("OPSBRIDGE_AUTH", "Strict"))
+                        .andExpect(cookie().path("OPSBRIDGE_AUTH", "/"))
+                        .andExpect(cookie().maxAge("OPSBRIDGE_AUTH", 1800))
+                        .andExpect(cookie().maxAge("OPSBRIDGE_CSRF", 0))
+                        .andExpect(cookie().doesNotExist("JSESSIONID"))
                         .andReturn();
-        return (MockHttpSession) result.getRequest().getSession(false);
+        assertThat(result.getRequest().getSession(false)).isNull();
+        return result.getResponse().getCookie("OPSBRIDGE_AUTH");
     }
 
-    private JsonNode token(MockHttpSession session) throws Exception {
-        return json.readTree(
-                mvc.perform(get("/api/auth/csrf").session(session))
-                        .andExpect(status().isOk())
-                        .andReturn()
-                        .getResponse()
-                        .getContentAsString());
+    private MvcResult csrfToken() throws Exception {
+        MvcResult result = mvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isOk())
+                .andExpect(cookie().httpOnly("OPSBRIDGE_CSRF", true))
+                .andExpect(cookie().sameSite("OPSBRIDGE_CSRF", "Strict"))
+                .andReturn();
+        assertThat(result.getRequest().getSession(false)).isNull();
+        return result;
+    }
+
+    private RequestPostProcessor validCsrf() throws Exception {
+        MvcResult result = csrfToken();
+        Cookie csrfCookie = result.getResponse().getCookie("OPSBRIDGE_CSRF");
+        JsonNode token = json.readTree(result.getResponse().getContentAsString());
+        return request -> {
+            Cookie[] existing = request.getCookies();
+            Cookie[] cookies = existing == null ? new Cookie[1] : Arrays.copyOf(existing, existing.length + 1);
+            cookies[cookies.length - 1] = csrfCookie;
+            request.setCookies(cookies);
+            request.addHeader(token.get("headerName").asText(), token.get("token").asText());
+            return request;
+        };
     }
 
     private String project(String name, String capabilities, boolean enabled) {

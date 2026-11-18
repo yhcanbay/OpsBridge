@@ -1,6 +1,6 @@
 # OpsBridge geliştirme rehberi
 
-Araştırma: **2026-11-04**; son düzenleme: **2026-11-14 — Europe/Istanbul**.
+Araştırma: **2026-11-04**; son düzenleme: **2026-11-19 — Europe/Istanbul**.
 
 Kullanıcının açık tercihi: **az satır yerine anlaşılır kod**. Dosya adı, bulunduğu paket ve çağrı akışı üzerinden bir işin nerede yapıldığını takip edebilmek temel ölçüt. Bu rehberdeki teknoloji seçimleri bu projenin mevcut kapsamına aittir; her uygulama için tek doğru teknoloji listesi olduğu iddia edilmez.
 
@@ -23,6 +23,7 @@ com.yhcanbay.opsbridge
 ├── entity/                   JPA/veritabanı modeli
 ├── enums/                    Capability, IntegrationState
 ├── exception/                Uygulama hataları ve HTTP hata çevirisi
+├── jwt/                      Token üretimi, doğrulama ve istek filtresi
 ├── mapper/                   DTO–entity dönüşümü
 ├── repository/               Veritabanı sorguları
 └── service/                  I…Service sözleşmeleri
@@ -59,11 +60,13 @@ MapStruct, derleme sırasında mapper uygulaması üretebilir; Spring component 
 
 Lombok'taki `@Data` erişim metotlarını ve temel nesne metotlarını, `@Builder` isimli alanlarla nesne oluşturmayı üretir. JPA entity'de `@Getter`/`@Setter` kullanılır; koleksiyon güncellemesi ve lifecycle metotları açık kalır. [Lombok Data](https://projectlombok.org/features/Data), [Builder](https://projectlombok.org/features/Builder), [Maven kurulumu](https://projectlombok.org/setup/maven).
 
-### Session ve JWT
+### Tek admin hesabı ve JWT
 
-Mevcut ürün aynı origin üzerinden çalışan tek bir yönetim paneli ve basit ADMIN hesabı kullanıyor. **Session cookie + CSRF** korunuyor: oturum sunucuda sonlandırılabilir; tarayıcı parola veya bearer token saklamaz. Axios yazma isteğinden önce CSRF token'ını alır, girişten sonra yeni token ister. [Spring Security 7.0 CSRF](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
+19 Kasım'da kullanıcı tek admin hesabını koruyup JWT'ye geçilmesini istedi. `C:\Ders\KisiselDerslerim\jwt` projesindeki `JwtService` ve `JwtAuthenticationFilter` akışı esas alındı. Spring Security mevcut form isteğindeki parolayı BCrypt ile doğrular. Başarılı girişte `JwtService`, JJWT 0.13.0 ile HS256 imzalı bir token üretir. Token'ın issuer değeri `opsbridge`, audience değeri `opsbridge-api` ve süresi girişten itibaren 30 dakikadır. [JJWT 0.13.0](https://github.com/jwtk/jjwt/tree/0.13.0).
 
-JWT, bağımsız mobil/API istemcisi veya bir kimlik sağlayıcıyla bearer token doğrulama ihtiyacında değerlendirilecek. Bu durumda issuer, audience, imza anahtarları, süre, token yenileme ve çıkış/iptal davranışı birlikte tasarlanmalı. Spring Security Resource Server, JWT doğrulamak için desteklenen bir yoldur; kendi başına kullanıcı girişi ve token üretim sistemi değildir. Bu değerlendirme sonucunda mevcut görevde JWT'ye geçilmedi. [Spring Security 7.0 JWT](https://docs.spring.io/spring-security/reference/7.0/servlet/oauth2/resource-server/jwt.html).
+`JwtAuthenticationFilter` her istekte HttpOnly çerezdeki JWT'yi doğrular ve admin yetkisini mevcut kullanıcı tanımından alır. Spring Security kimlik bilgisini yalnızca o istek için kullanır. Çıkış, token kimliğini kalan geçerlilik süresi boyunca bellekte iptal eder. Tek backend süreci her açılışta rastgele imzalama anahtarı üretir. Bu yüzden backend yeniden başlatıldığında veya token'ın süresi dolduğunda yeniden giriş yapılır. [Spring Security oturum yönetimi](https://docs.spring.io/spring-security/reference/7.0/servlet/authentication/session-management.html).
+
+Tarayıcı JWT'yi çerezle otomatik gönderdiği için CSRF kontrolü devam eder. Spring Security `OPSBRIDGE_CSRF` çerezindeki değeri, Axios'un `X-CSRF-TOKEN` başlığında gönderdiği token ile karşılaştırır. Giriş ve çıkış sonrasında önceki CSRF token'ı geçersizleşir. [Spring Security 7.0 CSRF](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
 
 ## React: routing, durum ve HTTP erişimi
 

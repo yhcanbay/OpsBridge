@@ -12,7 +12,7 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 
 ## İlk sürümde neler var?
 
-- Basit `ADMIN` girişi ve çıkışı; sunucuda oturum, BCrypt parola doğrulama ve CSRF koruması.
+- Tek `ADMIN` girişi, BCrypt parola doğrulama, imzalı JWT ve CSRF koruması.
 - PostgreSQL üzerinde proje profili oluşturma, listeleme, görüntüleme, güncelleme ve silme.
 - İlk kurulumda eklenen `Personal_Task_App` profili.
 - Proje profilinin aktifliği ve yeteneklerine göre üretilen Jenkins, Docker ve HTTP health bağlantı durumları.
@@ -31,7 +31,7 @@ OpsBridge/
 ├── backend/                 Spring Boot 4.0.9 / Java 21 / Maven
 │   └── src/main/
 │       ├── java/com/yhcanbay/opsbridge/
-│       │   ├── config/      ADMIN oturumu ve CSRF yapılandırması
+│       │   ├── config/      ADMIN girişi ve CSRF yapılandırması
 │       │   ├── controller/  I…Controller ve impl/ uygulamaları
 │       │   ├── dto/         request/ ve response/ sözleşmeleri
 │       │   ├── entity/      JPA modeli
@@ -60,7 +60,7 @@ Kod yazımı kullanıcının **Sozluk_Uygulamasi** projesini esas alır. Yerel r
 
 ## GitHub geçmişini kullanma
 
-Aktif bir projenin profilinde `https://github.com/kullanici/depo` biçiminde repository adresi tanımlayın. Proje detayındaki **GitHub geçmişi** bölümünde branch seçin; branch'ler ve commit'ler 20'şer kayıtla sayfalanır. İlk açılışta dönen ilk branch seçilir. **Yenile** branch ve commit sayfalarını başa alır.
+Aktif bir projenin profilinde `https://github.com/kullanici/depo` biçiminde repository adresi tanımlayın. Proje detayındaki **GitHub geçmişi** bölümünde branch seçin; branch'ler ve commit'ler 20'şer kayıtla sayfalanır. İlk açılışta dönen ilk branch seçilir. **Yenile** branch ve commit sayfalarını başa alır. Commit satırını açıp **SHA’yı kopyala** düğmesiyle tam SHA’yı panoya alın.
 
 **+ Proje ekle** formunda önce GitHub bağlantısını seçin. Kayıtlar `hesap adı — bağlantı adı` olarak gösterilir. **Yeni bağlantı ekle** ile bağlantıya bir ad ve GitHub tokenı girin; hesap adı backend tarafından GitHub'dan doğrulanır. Ardından **Devam et** ile proje bilgilerini doldurun. Açık depolar için **Tokensız devam et** seçilebilir. Özel depolarda ilgili depoya **Contents: read** izni veren bir fine-grained token kullanın.
 
@@ -171,10 +171,10 @@ Bu portlar referans uygulamanın 5173/8080/5432 portlarından ve Jenkins'in 8081
 
 | Yöntem | Adres | İşlev |
 |---|---|---|
-| GET | `/api/auth/csrf` | CSRF token'ı ve header adı; girişsiz erişilebilir |
-| POST | `/api/auth/login` | Form verisi: `username`, `password`; başarılıysa 204 |
-| GET | `/api/auth/me` | Oturumdaki kullanıcı |
-| POST | `/api/auth/logout` | Oturumu sonlandır; başarılıysa 204 |
+| GET | `/api/auth/csrf` | Giriş gerektirmeden CSRF çerezini ve istek başlığında kullanılacak token'ı verir |
+| POST | `/api/auth/login` | `username` ve `password` form alanlarını alır. Başarılı girişte 204 ve JWT çerezi döner |
+| GET | `/api/auth/me` | JWT ile doğrulanan admin hesabı |
+| POST | `/api/auth/logout` | JWT'yi iptal eder ve çerezleri kaldırır. Başarılı çıkışta 204 döner |
 | GET / POST | `/api/projects` | Listele / oluştur |
 | GET / PUT / DELETE | `/api/projects/{id}` | Görüntüle / güncelle / sil |
 | GET | `/api/projects/{id}/integrations` | Projenin bağlantı durumları |
@@ -183,7 +183,9 @@ Bu portlar referans uygulamanın 5173/8080/5432 portlarından ve Jenkins'in 8081
 | GET | `/api/projects/{id}/docker/containers` | Compose projesine ait container’ların listesi ve ayrıntıları |
 | GET | `/actuator/health` | OpsBridge'in kendi sağlığı; yalnızca özet |
 
-CSRF endpoint'inden alınan token, yanıttaki `headerName` ile POST/PUT/DELETE isteklerine eklenir. Aynı oturum cookie'si korunur. Girişten sonra ve çıkıştan sonraki yeni girişte token yeniden alınır. React bu akışı yönetir; parola veya oturum token'ı `localStorage` içine yazılmaz. [Spring Security CSRF ve JavaScript](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
+Spring Security doğru paroladan sonra 30 dakika geçerli JWT üretir. Tarayıcı `OPSBRIDGE_AUTH` adlı HttpOnly çerezi otomatik gönderir. Süre dolduğunda veya backend yeniden başlatıldığında tekrar giriş gerekir. HTTPS isteklerinde çerezler `Secure` olur. TLS bir proxy’de sonlandırıldığında `SESSION_COOKIE_SECURE=true` ile bu işaret backend’de zorlanabilir.
+
+React, CSRF yanıtındaki token'ı `headerName` ile POST/PUT/DELETE isteklerine ekler. Tarayıcı bu isteklerde `OPSBRIDGE_CSRF` çerezini de gönderir. Giriş ve çıkıştan sonra CSRF token'ı yenilenir. [Spring Security CSRF ve JavaScript](https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html).
 
 Yeni profil örneği:
 
@@ -212,7 +214,7 @@ cd backend
 mvn verify
 ```
 
-Backend testleri giriş/çıkış, gerçek oturum ve CSRF token'ları, yetkisiz erişim, ADMIN kontrolü, genel profil CRUD, geçersiz alanlar, bağlantı durumları, DB integrity ve GitHub okuma akışını kapsar. GitHub HTTP yanıtları testlerde taklit edilir; testler gerçek GitHub'a bağlanmaz. Mockito'nun test ayarı `mock-maker-subclass` olduğundan JVM'e agent bağlanması gerekmez. H2 test kapsamındadır; normal uygulama PostgreSQL kullanır. Paketler taşındıktan sonraki ilk kontrolde eski class dosyalarını kaldırmak için `mvn clean verify` kullanın.
+Backend testleri JWT ile giriş ve iptal, gerçek CSRF çerezi, geçersiz ve süresi dolmuş JWT, yetkisiz erişim, ADMIN kontrolü, genel profil CRUD, geçersiz alanlar, bağlantı durumları, DB integrity ve GitHub okuma akışını kapsar. GitHub HTTP yanıtları testlerde taklit edilir; testler gerçek GitHub'a bağlanmaz. Mockito'nun test ayarı `mock-maker-subclass` olduğundan JVM'e agent bağlanması gerekmez. H2 test kapsamındadır; normal uygulama PostgreSQL kullanır. Paketler taşındıktan sonraki ilk kontrolde eski class dosyalarını kaldırmak için `mvn clean verify` kullanın.
 
 Frontend biçim kontrolü, davranış testleri ve üretim derlemesi, `frontend/` altında:
 

@@ -2,6 +2,14 @@
 
 Son güncelleme: **2026-11-19 — Europe/Istanbul**
 
+## 2026-11-19 — Tek admin girişi JWT ile korunuyor
+
+Kullanıcı tek admin hesabını ve mevcut giriş ekranını koruyarak Spring Security JWT eklenmesini istedi. `C:\Ders\KisiselDerslerim\jwt` projesindeki JJWT, `JwtService` ve JWT filtresi akışı esas alındı. Spring Security mevcut form girişinde BCrypt ile parolayı doğrular. JWT, 30 dakika geçerli HttpOnly çerezle taşınır. JWT filtresi her korumalı istekte imzayı ve geçerliliği doğrular, `ADMIN` yetkisini mevcut kullanıcı tanımından alır. Giriş, yazma ve çıkış istekleri CSRF koruması altında kalır. Çıkış token'ı iptal eder. İmzalama anahtarı tek backend sürecinin belleğinde üretildiği için backend yeniden başlayınca tekrar giriş yapılır. [Güvenlik yapılandırması](../backend/src/main/java/com/yhcanbay/opsbridge/config/SecurityConfig.java), [JWT servisi](../backend/src/main/java/com/yhcanbay/opsbridge/jwt/JwtService.java), [API ve oturum akışı](../README.md#api-ve-oturum-akışı)
+
+Kullanıcının ek özellik için verdiği kapsamda GitHub geçmişine **SHA’yı kopyala** düğmesi eklendi. Açılan commit ayrıntısından tam SHA panoya alınır. Panoya erişilemediğinde tam değer elle seçilebilir. [GitHub geçmişi](../frontend/src/components/projects/GitHistory.jsx)
+
+`mvn verify` 101 testle geçti. Frontend 54 test, biçim kontrolü ve üretim derlemesi geçti. Compose yapılandırma kontrolü geçti. Yerel Chrome, Spring Boot ve geçici H2 ile doğrudan proje adresinden giriş, hatalı parola, sayfa yenileme, profil CRUD, çıkış sonrası eski JWT'nin reddi ve backend yeniden başlatılınca tekrar giriş doğrulandı. GitHub geçmişi ve entegrasyon kartı yanıtları testte taklit edildi. Chrome panosundan tam SHA geri okundu. 320 ve 1440 px genişlikleri kontrol edildi. Canlı dağıtım yapılmadı.
+
 ## 2026-11-19 — Proje arayüzünün sadeleştirilmesi
 
 Kullanıcı ana ekranın yalnız proje adlarını göstermesini, seçilen projenin kendi sayfasına açılmasını ve commitlerin daha kompakt olmasını istedi. Düzenleme için bütün alanların tek kaydırılabilir pencerede bulunmasını seçti.
@@ -239,7 +247,7 @@ Sekiz haftalık planın **1. haftasından yola çıkarak basit Spring Boot–Rea
 
 - [backend](../backend/pom.xml): Java 21 hedefi, Spring Boot 4.0.9, Maven, JPA, validation, Spring Security, Actuator ve Flyway.
 - [frontend](../frontend/package.json): React 19.3.1, Vite 7.3.7, React Router DOM 7.18.5, Axios 1.21.0; Türkçe giriş, URL tabanlı proje listesi/detayı, profil ekleme–düzenleme–silme ve bağlantı kartları.
-- [ADMIN oturumu](../backend/src/main/java/com/yhcanbay/opsbridge/config/SecurityConfig.java): environment üzerinden hesap, BCrypt doğrulama, session cookie, açık CSRF koruması. JWT araştırıldı; mevcut aynı-origin yönetim paneli için session akışı korundu, gerekçesi rehberde.
+- [ADMIN oturumu](../backend/src/main/java/com/yhcanbay/opsbridge/config/SecurityConfig.java): ortam ayarlarından tek hesap, BCrypt doğrulama, HttpOnly JWT çerezi ve CSRF koruması. JWT akışı [geliştirme rehberinde](../docs/DEVELOPMENT_GUIDE.md#tek-admin-hesabı-ve-jwt).
 - [Proje profili API'si](../backend/src/main/java/com/yhcanbay/opsbridge/controller/impl/ProjectControllerImpl.java): genel CRUD, UUID, alan doğrulama ve capability kümesi. Controller/service/repository/entity, request/response DTO, mapper, enum, config ve exception paketleri ayrı. Controller ve servis arayüzlerinin uygulamaları `impl/` altında. Entity DTO bilmez; controller entity döndürmez. Dönüşümler açık mapper sınıflarında.
 - [Flyway migration'ları](../backend/src/main/resources/db/migration/): PostgreSQL şeması ve bir Personal_Task_App profili. V1/V2 değiştirilmedi; yeni V3 boş ad/ortam ve tanımsız capability için CHECK kuralları ekler. Silinen örnek profil her başlangıçta tekrar eklenmez.
 - [Bağlantı durumları](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java): Jenkins job ve yerel Docker Engine erişimi ilgili servislerde sorgulanır. [HTTP Health kartı](../frontend/src/components/projects/HttpHealthStatus.jsx), uygun profillerde OpsBridge’in Actuator yanıtını gösterir.

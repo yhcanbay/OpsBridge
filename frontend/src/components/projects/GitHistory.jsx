@@ -9,6 +9,7 @@ const commitDateFormatter = new Intl.DateTimeFormat('tr-TR', {
 
 function GitHistory({ projectId }) {
     const [query, setQuery] = useState({ branch: '', page: 1, branchPage: 1 })
+    const [copyResult, setCopyResult] = useState(null)
     const { history, isLoading, error } = useGitHistory(projectId, query)
 
     function handleRefresh() {
@@ -25,6 +26,19 @@ function GitHistory({ projectId }) {
 
     function handleBranchPageChange(branchPage) {
         setQuery({ branch: '', page: 1, branchPage })
+    }
+
+    async function handleCopySha(sha) {
+        setCopyResult(null)
+        try {
+            await navigator.clipboard.writeText(sha)
+            setCopyResult({ sha, message: 'SHA kopyalandı.' })
+        } catch {
+            setCopyResult({
+                sha,
+                message: 'SHA kopyalanamadı. Tam SHA’yı seçip kopyalayabilirsiniz.'
+            })
+        }
     }
 
     return (
@@ -104,7 +118,20 @@ function GitHistory({ projectId }) {
                                             </summary>
                                             <div className="git-commit-body">
                                                 <p>{message || 'Mesaj yok'}</p>
-                                                <code>{commit.sha}</code>
+                                                <div className="git-commit-sha">
+                                                    <code>{commit.sha}</code>
+                                                    <button
+                                                        type="button"
+                                                        className="text-button"
+                                                        onClick={() => handleCopySha(commit.sha)}
+                                                    >
+                                                        SHA’yı kopyala
+                                                    </button>
+                                                </div>
+                                                <div role="status" className="small muted">
+                                                    {copyResult?.sha === commit.sha &&
+                                                        copyResult.message}
+                                                </div>
                                             </div>
                                         </details>
                                     </li>
