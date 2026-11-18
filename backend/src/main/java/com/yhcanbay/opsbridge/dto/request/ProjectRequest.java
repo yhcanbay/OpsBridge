@@ -2,6 +2,7 @@ package com.yhcanbay.opsbridge.dto.request;
 
 import java.net.URI;
 import java.util.Set;
+import java.util.UUID;
 
 import com.yhcanbay.opsbridge.enums.Capability;
 
@@ -29,6 +30,8 @@ public class ProjectRequest {
     @NotBlank
     @Size(max = 500)
     private String repositoryUrl;
+
+    private UUID githubConnectionId;
 
     @NotBlank
     @Pattern(regexp = "[a-z][a-z0-9_-]{0,29}")
@@ -65,6 +68,21 @@ public class ProjectRequest {
         }
 
         return isHttpUrlWithoutCredentials(healthUrl);
+    }
+
+    @AssertTrue(message = "Jenkins adresi, HTTP(S) URL veya local-jenkins referansı olmalıdır; kimlik bilgisi, sorgu ve fragment içermemelidir.")
+    public boolean isJenkinsBaseUrlRefValid() {
+        if (jenkinsBaseUrlRef == null || jenkinsBaseUrlRef.isBlank()
+                || "local-jenkins".equals(jenkinsBaseUrlRef.trim())) {
+            return true;
+        }
+        if (!isHttpUrlWithoutCredentials(jenkinsBaseUrlRef)) {
+            return false;
+        }
+        URI uri = URI.create(jenkinsBaseUrlRef.trim());
+        return uri.getQuery() == null && uri.getFragment() == null
+                && uri.getPort() != 0 && uri.getPort() <= 65535
+                && !uri.getRawPath().contains("%") && !uri.getPath().contains("..");
     }
 
     private static boolean isHttpUrlWithoutCredentials(String value) {

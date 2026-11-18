@@ -41,7 +41,7 @@ function toApiError(error) {
         0: 'API bağlantısı kurulamadı. Backend uygulamasının çalıştığını kontrol edin.',
         401: 'Oturum bulunamadı veya kullanıcı adı/parola hatalı.',
         403: 'İstek doğrulanamadı. Oturumunuzu yenileyip tekrar deneyin.',
-        404: 'Proje bulunamadı. Listeyi yenileyin.'
+        404: problem.detail ?? 'Proje bulunamadı. Listeyi yenileyin.'
     }
 
     let message = messages[status] ?? problem.detail ?? 'İşlem tamamlanamadı.'

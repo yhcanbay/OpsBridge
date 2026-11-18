@@ -44,6 +44,8 @@ public class ProjectProfile {
     @Column(nullable = false, length = 500)
     private String repositoryUrl;
 
+    private UUID githubConnectionId;
+
     @Column(nullable = false, length = 30)
     private String environment;
 

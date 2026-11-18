@@ -11,6 +11,8 @@ import com.yhcanbay.opsbridge.entity.ProjectProfile;
 
 public interface ProjectRepository extends JpaRepository<ProjectProfile, UUID> {
 
+    boolean existsByGithubConnectionId(UUID connectionId);
+
     @EntityGraph(attributePaths = "capabilities")
     List<ProjectProfile> findAllByOrderByNameAsc();
 

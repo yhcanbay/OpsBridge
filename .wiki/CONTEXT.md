@@ -1,6 +1,16 @@
 # Kullanıcı ve ürün bağlamı
 
-Son güncelleme: **2026-11-07 — Europe/Istanbul**
+Son güncelleme: **2026-11-14 — Europe/Istanbul**
+
+## 2026-11-14 — Jenkins okuma kapsamı ve düzenlenebilir proje ayarları
+
+**Kullanıcı isteği:** Önceki Jenkins ayrıntı tasarımının gerçek koda bağlanmasını istedi; verdiği `RestClient` servis örneğini esas almamızı belirtti. Yeni Jenkins verisi DB'ye kaydedilmeyecek; akış Jenkins'ten oku → frontend'e gönder olacak. Mevcut `jenkins_base_url_ref` ve `jenkins_job_path` alanları genel proje ayarlarından düzeltilebilir kalmalı. Kullanıcının son netleştirmesine göre bağlantı yoksa Jenkins ayrıntısına geçiş verilmez. Bu onay Jenkins'e yazma/build tetikleme veya deployment kapsamı değildir. Uygulanan akış ve gerçek doğrulama sınırları STATUS'tadır.
+
+## 2026-11-14 — Proje bazında kayıtlı GitHub bağlantısı
+
+**Kullanıcı isteği ve onaylanan kararlar:** Kullanıcı, yeni proje eklerken veritabanında tokenı kayıtlı GitHub hesaplarının önerilmesini, mevcut bağlantının seçilebilmesini veya yeni token girilebilmesini istedi. Plan sorularında kapsamı **GitHub bağlantıları** olarak seçti; yerel repo/gönderilmemiş commit ve çalışan Docker sürümü eşlemesi sonraya kaldı. Açık depolarda tokensız erişimi ve bağlantı ekleme/yenileme/kullanılmayanı silme işlemlerinin aynı proje formunda bulunmasını seçti. Hazırlanan planın tamamını "uygula" diyerek onayladı.
+
+**Uygulanan model:** Bağlantı kayıtları projelerden ayrıdır; aynı hesaba ait birden fazla token bulunabilir ve aynı bağlantı birden fazla projede kullanılabilir. Hesap adı GitHub'dan doğrulanır; seçili tokenın depoya erişimi proje kaydında ayrıca kontrol edilir. Token yenilemesi bağlantıyı kullanan bütün projelere uygulanır, kullanılan bağlantı silinmez. Token DB'de şifreli, şifreleme anahtarı backend ortamında tutulur; ortak `GITHUB_TOKEN` kullanımı kaldırıldı. Bu, genel Git hedefinin bütününün veya canlı entegrasyonların tamamlandığı anlamına gelmez. Gerçek doğrulama ve deployment sınırları STATUS'tadır.
 
 ## Kullanıcının anlattığı geçmiş ve amaç
 
@@ -12,6 +22,16 @@ Kaynak: Bu proje sohbetindeki kullanıcı açıklamaları.
 - Yalnızca çalışan kod değil, neyin neden yapıldığını anlayabileceği bir ilerleme istiyor. Somut uygulama akışları ve küçük adımlar açıklamayı kolaylaştırır.
 - Mevcut sekiz haftalık raporu yapay zekâ oluşturmuş. Kullanıcı raporun doğru/yanlış ve uygulanabilir kısımlarını kendi fikri üzerinden değerlendirmemizi istiyor; raporun tamamını onaylamış değil.
 - Sohbet bağlamını `.wiki` altında saklamamızı açıkça istedi. Amaç aynı geçmişi tekrar yazmamak ve ilerleyişi Codex ile senkron yürütmek.
+
+## 2026-11-13 — GitHub okumasına öğrenilen örnekle başlama
+
+Kullanıcı [paylaştığı dosyayla](<../javada dockerda çalışan uygulamanın ve o uygulaman.md>) Java `HttpClient` üzerinden GitHub branch/commit okuma ve build metadata ayrımını yeni öğrendiğini belirtti. Kodun hocası sorduğunda anlatabileceği sadelikte olmasını açıkça istedi ve uygulamaya başlamamıza izin verdi. İlk uygulama adımı GitHub branch/commit ekranıdır; bu sınır Codex'in küçük adımlı uygulama seçimidir. Önceki yerel depo + GitHub hedefi kaldırılmadı; çalışan Docker sürümü için build metadata bağlantısı da henüz yapılmadı. Kaynaktaki çok servisli tasarım önerisi, geniş mimari kurma talimatı olarak alınmadı.
+
+## 2026-11-11 — Öğrenmeye uygun sadelik ve sınıf sayısı
+
+**Kullanıcı geri bildirimi:** `integration/` paketinin referans projede bulunmadığını belirterek neden eklendiğini sordu. Verdiği bir kaynak veya taktik üzerine çok sayıda sınıf oluşturulmasının, kod üzerinden öğrenmesini okul için ayırabildiği kısıtlı zamanda zorlaştırdığını açıkladı. Anlaşılır kod tercihi yalnızca metotların biçimini değil, bir işlemi takip etmek için gereken dosya sayısını da kapsar.
+
+**Çalışma yaklaşımı:** Referanstaki tanıdık controller/service/DTO akışını esas al; mevcut ihtiyacı karşılayan açık metotlarla ilerle. Gelecekte gerekebilir diye adapter/stub/factory veya ek model katmanları kurma. Gerçek bir ayrım gerektiğinde somut gerekçesini kısa anlat. Bu geri bildirim mevcut katman/DTO sınırlarının kaldırılması veya tüm uygulamanın yeniden yazılması talimatı değildir.
 
 ## 2026-11-07 — Kullanıcının kod yazımı referansı
 

@@ -1,6 +1,6 @@
 # OpsBridge — vize ve devam planı
 
-Güncelleme: **2026-11-07 — Europe/Istanbul**.
+Güncelleme: **2026-11-14 — Europe/Istanbul**.
 
 Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık DevSecOps Proje Planı 1.md>) mevcut kaynaklar ve kullanıcı açıklamalarına göre güncellenmiş devam önerisidir. İlk plan tarihsel kaynak olarak korunur. Planlanan işler tamamlanmış özellik olarak değerlendirilmez.
 
@@ -17,7 +17,7 @@ Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık Dev
 
 ## Şu anda neredeyiz?
 
-**7 Kasım itibarıyla takvimde 2. haftadayız. OpsBridge uygulama temeli ve Sozluk_Uygulamasi yazımına uyarlama tamamlandı; son kaynak kontrollerinde 11 backend ve 11 frontend testi geçti. Aynı sunucuda ayrı OpsBridge + tarayıcıdan admin erişimi modeli kesinleşti. Sıradaki özellik işi sunucudaki yerel depo ve GitHub için commit/branch görünürlüğüdür. Gerçek Git/Jenkins/Docker/health entegrasyonları henüz yok; URL/HTTPS yayını son aşamada yapılacak.**
+**14 Kasım itibarıyla GitHub hesap/token seçimi ve Jenkins ayrıntı ekranı uygulandı. Jenkins kartı gerçek HTTP erişimini kontrol eder; yalnız bağlantı doğrulanınca build/aşama/test/geçmiş ekranına geçiş verir. URL/job mevcut proje alanlarından düzenlenir, çalışma verisi DB'ye kaydedilmez. Yerel Git, çalışan sürüm metadatası ve Docker/health bağlantıları açık. Gerçek Jenkins kimlik bilgileriyle kontrol ve Docker deployment yapılmadı; test kanıtları STATUS'tadır. URL/HTTPS yayını son aşamadadır.**
 
 5 Kasım kaynak incelemesinde OpsBridge HEAD'i `47313af`, Personal_Task_App HEAD'i `faae3d0` idi; bunlar tarihsel kayıtlardır. Kullanıcı, kullandığı Jenkins'in **Windows üzerinde `localhost:8081`** olduğunu doğruladı; o günkü salt okunur job incelemesinde `taskapp-cicd`, `*/main` ve `Jenkinsfile` belirlendi. 7 Kasım'da referans Jenkinsfile yeniden okundu: frontend test/lint, feature/PR ayrımı ve deploy branch koşulu yok. Kimlik doğrulanmış API, webhook/ngrok üzerinden otomatik tetikleme ve güncel başarılı deployment ayrıca doğrulanmadı. Referans uygulamanın canlı kurulum kanıtı açık kaldığından 1. haftanın tamamı bitmiş sayılmaz.
 
@@ -28,11 +28,12 @@ Bu belge, [ilk sekiz haftalık planın](<../OpsBridge — Revize 8 Haftalık Dev
 | Spring Boot–React–PostgreSQL temeli | Mevcut; kaynaklar ve kurulum belgeleri hazır |
 | ADMIN girişi, session/CSRF, profil CRUD | Mevcut; 5 Kasım'da Docker/Nginx üzerinden gerçek Chrome ile giriş/çıkış ve profil ekleme–düzenleme–silme doğrulandı |
 | Katmanlar, DTO/mapper, Router/Axios, migration'lar | Mevcut; 7 Kasım'da Sozluk_Uygulamasi yazımına uyarlandı: controller/service arayüzleri ve impl sınıfları, Lombok DTO, açık React form alanları |
-| Otomatik kontroller | 7 Kasım kaynak refaktöründe temiz Maven verify ile 11 backend testi ve jar; 11 frontend testi, Prettier kontrolü ve üretim build'i başarılı. Bu durum güncellemesinde kontroller tekrarlanmadı |
-| OpsBridge Docker kurulumu ve gerçek tarayıcı akışı | 5 Kasım'da üç servis, DB healthy/health UP, Java 21, giriş/CRUD/doğrudan URL/dar ekran ve yeniden başlatma sonrası kalıcılık doğrulandı. 7 Kasım kaynak refaktörü yeniden deploy edilmedi; yeni kodun canlı tarayıcı kanıtı yok |
+| Otomatik kontroller | Jenkins adımı sonrası H2 üzerinde 97 backend, 39 frontend testi; Prettier ve üretim build'i başarılı. Önceki GitHub adımı PostgreSQL 16'da 55 test geçti; Jenkins adımı PostgreSQL'de tekrar çalıştırılmadı. HTTP yanıtları testlerde taklit edilir; tarayıcı/gerçek sistem sınırları STATUS'ta |
+| OpsBridge Docker kurulumu ve gerçek tarayıcı akışı | 5 Kasım'da Compose giriş/CRUD/kalıcılık doğrulandı. Yeni sürüm üretim Compose'a deploy edilmedi; 14 Kasım Jenkins akışı geçici H2, gerçek Spring Boot ve yerel Jenkins HTTP fixture'ıyla Chrome'da doğrulandı |
 | Personal_Task_App temiz kurulum ve gerçek Jenkins bağlantısı | Kurulum denemesi kullanıcı testi nedeniyle iptal edildi. Yerel Jenkins/job/branch ve mevcut Compose label/DB volume'u belirlendi; başarılı deployment/API/ağ doğrulaması açık |
 | 2. haftanın pipeline iyileştirmeleri | Referans kaynaklarda lint aşaması, JUnit yayınlama, commit/build image kimliği, özel label'lar ve Actuator health eksik |
-| OpsBridge canlı veri kartları | Henüz yok; adapter'lar dış istek yapmadan başlangıç durumları döndürüyor |
+| OpsBridge bağlantı kartları | Jenkins erişimi RestClient ile kontrol edilir; doğrulanmış kart ayrıntı sayfasına gider. Docker/health henüz bağlı değil. Geçici adapter/stub yapısı kullanılmaz |
+| GitHub geçmişi | Sayfalı branch/commit API ve ekranı, kayıtlı hesap/token yönetimi ve proje bazında seçim mevcut. Yerel Git ve çalışan sürüm bağlantısı henüz yok; doğrulama ayrıntıları STATUS'ta |
 | Build tetikleme, queue/build eşlemesi, işlem geçmişi | Henüz yok |
 | Çoklu roller, tarama, rapor ve security gate | Henüz yok; mevcut ADMIN/CSRF/environment temeli bu teslimlerin tamamlandığı anlamına gelmez |
 
@@ -40,9 +41,9 @@ Ayrıntılı mevcut durum ve önceki doğrulamanın sınırları: [STATUS](../.w
 
 ## 5 Kasım öncelik güncellemesi — Git görünürlüğü ara adımı
 
-**Kullanıcı isteği:** Ana roadmap'e dönmeden önce projelerin commit geçmişi ve branch'lerini OpsBridge içinde görmek. Kaynak **yerel repo + GitHub**, gönderilmemiş commit ve branch'ler dahil olarak netleşti. Bu ara adım henüz uygulanmadı; ayrı DB, yenilemede onay veya Git'e yazma işlemleri kullanıcı kararı olarak eklenmedi.
+**Kullanıcı isteği:** Ana roadmap'e dönmeden önce projelerin commit geçmişi ve branch'lerini OpsBridge içinde görmek. Kaynak **yerel repo + GitHub**, gönderilmemiş commit ve branch'ler dahil olarak netleşti. 13 Kasım'da kullanıcının uygulamaya başlama talimatıyla GitHub kısmının ilk adımı eklendi; yerel kaynak henüz uygulanmadı. Ayrı DB, yenilemede onay veya Git'e yazma işlemleri kullanıcı kararı olarak eklenmedi.
 
-[Git görünürlüğü tasarım önerisi](GIT_VISIBILITY.md): yerel repo ve GitHub için backend okuma adapter'ları, Docker backend'e salt okunur repo bağlantısı ve proje detayında kaynak/branch seçimi ile sayfalanmış commit listesi. Ayrı DB yerine ihtiyaç halinde mevcut OpsBridge PostgreSQL'inde önbellek/metadata tutulması; normal veri yenilenmesinin onay istememesi Codex önerisidir. Yereldeki upstream bilgisinin son fetch'e bağlı olduğu gösterilmeli; yeni SHA tek başına force push kanıtı sayılmamalı.
+[Git görünürlüğü](GIT_VISIBILITY.md): GitHub için doğrudan controller/service/DTO akışı ve sayfalanmış branch/commit ekranı var. İlk tasarımdaki ayrı adapter katmanı uygulanmadı; kullanıcının sadelik talimatı esas alındı. Yerel kaynak için Docker backend'e salt okunur repo bağlantısı hâlâ öneridir. Ayrı DB yerine ihtiyaç halinde mevcut OpsBridge PostgreSQL'inde önbellek/metadata tutulması Codex önerisidir. Yereldeki upstream bilgisinin son fetch'e bağlı olduğu gösterilmeli; yeni SHA tek başına force push kanıtı sayılmamalı.
 
 8081 Jenkins'e ve kullanıcının eşzamanlı referans deployment'ına müdahale etmeme sınırı devam eder. İlk yerel repo bağlantısı, kütüphane/komut seçimi ve kalıcı önbellek ihtiyacı uygulama öncesinde netleştirilmeli. Bu ara adım için henüz süre ölçülmedi; mevcut vize hedeflerinin etkilenmediği varsayılmaz ve bu turda takvim tarihleri değiştirilmedi.
 
@@ -54,7 +55,7 @@ Vize haftası araya alındığından, sekiz geliştirme haftasının takvim biti
 |---|---|---|---|
 | 1 — 28 Ekim–3 Kasım; kalanını 5–6 Kasım'da kapatma hedefi | OpsBridge ortam kanıtı tamam; referans uygulama kanıtı açık | Referans uygulama kurulumunu ve erişimini, kullanıcı Jenkins testi sonrasında doğrulama | OpsBridge giriş/CRUD/kalıcılık doğrulandı; ayrıca referans uygulama belgeli kurulumla açılmalı |
 | 2 — 4–10 Kasım; pipeline için 7–10 Kasım hedefi | İyileştirmeler kaynaklarda eksik | Tekrarlanabilir pipeline, image kimliği, label ve health | Başarılı kaynak sürümü deploy oluyor; bozuk test/lint deploy'u durduruyor |
-| 3 — 11–17 Kasım | Adapter sözleşmeleri hazır; canlı veri yok | Jenkins geçmişi, Docker durumu ve HTTP health okuma | Gerçek veriler ve doğru hata/son veri zamanı panelde görünüyor |
+| 3 — 11–17 Kasım | Jenkins okuma API/ekranı ve bağlantı kontrolü eklendi; gerçek kurulum doğrulaması açık | Jenkins ayarlarını gerçek ortamda doğrulama, Docker durumu ve HTTP health okuma | Gerçek veriler ve doğru hata/son veri zamanı panelde görünüyor |
 | 4 — 18–22 Kasım | İşlem akışı yok | Yetkili build tetikleme, queue/build eşleme, işlem kaydı ve demo | Panelden başlatılan build, deploy edilen image ve health ile izlenebiliyor |
 | Vize — 23–29 Kasım | Kullanıcı tarafından doğrulanan hafta | Demo, anlatım ve gerekli hata düzeltmeleri | Temel DevOps akışı gösterilebiliyor |
 | 5 — 30 Kasım–6 Aralık | Temel kimlik doğrulama mevcut | Tehdit modeli, rol/yetki ve erişim sınırları | Yetkisiz API işlemi reddediliyor ve kayda giriyor |
@@ -73,7 +74,7 @@ Vize haftası araya alındığından, sekiz geliştirme haftasının takvim biti
 5. **Kısmen tamamlandı:** Jenkins `8081`, job `taskapp-cicd`, branch `main`; mevcut container seçicisi `com.docker.compose.project=personal_task_app`, DB volume'u `personal_task_app_postgres_data`. Kimlik doğrulanmış API ve güncel başarılı pipeline sonucu henüz doğrulanmadı; secret'lar kaydedilmez.
 6. **Kısmen tamamlandı:** OpsBridge Nginx → backend → PostgreSQL yolu gerçek isteklerle doğrulandı. Jenkins agent'ı ve referans uygulama arasındaki güncel erişim ile OpsBridge container'ından bu hedeflere erişim kullanıcı testi sonrasında doğrulanmalı.
 
-**Kapanış:** OpsBridge ve referans uygulama gerçekten açılmalı; kurulum ve erişim bilgileri belgelenmeli. Bu koşullar sağlanmadan 1. hafta tamamlandı olarak işaretlenmez. Docker erişimi bekleniyorsa örnek yanıtlarla adapter geliştirmesine hazırlık yapılabilir; canlı doğrulama açık kalır.
+**Kapanış:** OpsBridge ve referans uygulama gerçekten açılmalı; kurulum ve erişim bilgileri belgelenmeli. Bu koşullar sağlanmadan 1. hafta tamamlandı olarak işaretlenmez. Docker erişimi bekleniyorsa örnek yanıtlarla bağlantı geliştirmesine hazırlık yapılabilir; canlı doğrulama açık kalır.
 
 ## 2. hafta: izlenen uygulamanın pipeline'ı
 
@@ -133,4 +134,4 @@ Bu işlerin asıl uygulama alanı ayrı **Personal_Task_App** deposudur. OpsBrid
 - Önerilen kontrol noktaları: **10 Kasım pipeline**, **17 Kasım canlı veri**, **22 Kasım tam DevOps demosu**. İlk iki hedefte gecikme görülürse vize kapsamı ve kalan süre yeniden değerlendirilir; görsel ve isteğe bağlı işler öncelik almaz.
 - Güvenlik için Aralık takvimi, final teslim tarihi ve haftalık çalışma süresi öğrenildiğinde yeniden ölçülür. Buradaki tarihler kesin süre taahhüdü değildir.
 
-**Sıradaki somut iş:** Kullanıcının yeni önceliği olan yerel/GitHub commit ve branch görünürlüğünün ilk sürümünü tasarım önerisi üzerinden netleştirip uygulamak. Git ara adımı sonrasında ve kullanıcının 8081 Jenkins testi de tamamlandığında, referans uygulamanın DB/API/arayüz ve başarılı deployment kanıtıyla 1. haftayı kapatmak; sonra 2. haftanın lint/JUnit işleri. Mevcut Jenkins kurulumu yeniden oluşturulmaz.
+**Sıradaki önerilen iş:** Kullanıcı GitHub okuma adımını inceledikten sonra sunucudaki yerel depo görünürlüğünü ve çalışan sürümün build metadata bağlantısını küçük adımlarla ele almak. Mevcut GitHub kodunun canlı doğrulama sınırları STATUS'ta kayıtlıdır. Git ara adımı sonrasında ve kullanıcının 8081 Jenkins testi de tamamlandığında, referans uygulamanın DB/API/arayüz ve başarılı deployment kanıtıyla 1. haftayı kapatmak; sonra 2. haftanın lint/JUnit işleri. Mevcut Jenkins kurulumu yeniden oluşturulmaz.

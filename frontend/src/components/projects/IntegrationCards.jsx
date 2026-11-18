@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom'
 import { INTEGRATION_STATE_LABELS } from '../../constants/projectProfile.js'
 import { useIntegrations } from '../../hooks/useIntegrations.js'
+import HttpHealthStatus from './HttpHealthStatus.jsx'
 
 function IntegrationCards({ project }) {
     const { items, isLoading, error } = useIntegrations(project.id, project.updatedAt)
@@ -26,17 +28,41 @@ function IntegrationCards({ project }) {
                 <article className="integration-card" key={item.integration}>
                     <span className="integration-number">0{index + 1}</span>
                     <h4>{item.integration}</h4>
-                    <span className="status neutral">
-                        <span className="status-dot" />
-                        {INTEGRATION_STATE_LABELS[item.state] ?? item.state}
-                    </span>
-                    <p>{item.message}</p>
-                    <small className="muted">
-                        Son başarılı veri:{' '}
-                        {item.lastSuccessfulFetchAt
-                            ? new Date(item.lastSuccessfulFetchAt).toLocaleString('tr-TR')
-                            : 'Henüz yok'}
-                    </small>
+                    {item.integration === 'HTTP Health' && item.state === 'NOT_CONNECTED' ? (
+                        <HttpHealthStatus />
+                    ) : (
+                        <>
+                            <span
+                                className={`status ${item.state === 'CONNECTED' ? 'success' : 'neutral'}`}
+                            >
+                                <span className="status-dot" />
+                                {INTEGRATION_STATE_LABELS[item.state] ?? item.state}
+                            </span>
+                            <p>{item.message}</p>
+                            <small className="muted">
+                                {item.integration === 'Docker'
+                                    ? 'Son başarılı bağlantı'
+                                    : 'Son başarılı veri'}
+                                :{' '}
+                                {item.lastSuccessfulFetchAt
+                                    ? new Date(item.lastSuccessfulFetchAt).toLocaleString('tr-TR')
+                                    : 'Henüz yok'}
+                            </small>
+                        </>
+                    )}
+                    {(item.integration === 'Jenkins' || item.integration === 'Docker') &&
+                        (item.state === 'CONNECTED' ? (
+                            <Link
+                                className="integration-details-link"
+                                to={`/projects/${project.id}/${item.integration.toLowerCase()}`}
+                            >
+                                {item.integration} ayrıntıları ↗
+                            </Link>
+                        ) : (
+                            <span className="integration-unavailable">
+                                Ayrıntılar için {item.integration} bağlantısı gerekli.
+                            </span>
+                        ))}
                 </article>
             ))}
         </div>

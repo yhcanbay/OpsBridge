@@ -23,6 +23,8 @@ public class ProjectResponse {
 
     private String repositoryUrl;
 
+    private UUID githubConnectionId;
+
     private String environment;
 
     private String jenkinsBaseUrlRef;

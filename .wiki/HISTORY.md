@@ -2,6 +2,82 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-19 — HTTP Health kartı OpsBridge sağlık yanıtını gösteriyor
+
+Kullanıcı mevcut proje kartında Actuator yanıtını görmek istedi. React mevcut proxy üzerinden OpsBridge’in `GET /actuator/health` yanıtını okuyor ve kartta HTTP kodunu ve sağlık durumunu gösteriyor. Ayrıntılar ve doğrulama [STATUS](STATUS.md#2026-11-19--http-health-kartının-actuator-bağlantısı) kaydında.
+
+## 2026-11-18 — Salt okunur Docker ekranı uygulandı
+
+Kullanıcı görsel tasarımdan kodlamaya geçilmesini ve paylaştığı docker-java örneğine göre anlaşılır bir akış kurulmasını istedi. Daha önce boş duran proje bazlı Docker kartına Engine bağlantı kontrolü ve ayrıntı ekranı eklendi. Liste, kullanıcının düzenleyebildiği mevcut Compose etiketiyle sınırlandı. Docker list/inspect çıktısından servis/container, çalışma ve sağlık, image, zaman/çıkış ve yayımlanan port bilgileri alındı. Geçici named pipe yanıtlarıyla Chrome’da uçtan uca akış, filtre ve hata durumları doğrulandı. Maven verify 100, frontend 43 test geçti. Personal_Task_App’in canlı Docker Engine erişimi bu ortamda doğrulanamadı. Kurulum ve devam koşulları STATUS ile README’de.
+
+## 2026-11-18 — Docker sayfasının görsel tasarımı
+
+Kullanıcı Docker ekranında container kimliği, çalışma ve sağlık durumu, image bilgisi, başlangıç/kapanma bilgileri ve portları görmek istedi. Jenkins sayfası görsel referans olarak kullanıldı. [Masaüstü taslağı](../docs/docker-sayfa-tasarimi.png), çalışma özetiyle birlikte container tablosu ve seçilen container için ayrıntı kartı sunuyor. Görselde örnek veriler kullanıldı. Bu çalışma görsel tasarım aşamasıdır. Uygulama kodu yazılmadı ve Docker verisi çekilmedi.
+
+## 2026-11-14 — Jenkins erişiminde eksik kimlik bilgisi bulgusu
+
+Kullanıcı `localhost:8081` / `job/taskapp-cicd/` ayarlarıyla 401/403 mesajı aldığını bildirdi. Yol biçimi doğru işlendiği görüldü; aynı job API'sine anonim GET 403 döndü ve Jenkins 2.541.3 erişilebilirliği doğrulandı. Proje `.env` dosyasında Jenkins kullanıcı/token ayarları boş veya yoktu; gerçek değerler çıktılanmadı. Mevcut kod bu durumda anonim istek gönderir. Kullanıcıya Jenkins kullanıcı API tokenı ile ortam ayarı ve OpsBridge backend yeniden başlatma adımı anlatıldı. Çalışan IDE sürecinin ortamı ve kimlik doğrulanmış istek doğrulanmadı. Kod, `.env`, Jenkins güvenlik ayarları veya build'ler değiştirilmedi.
+
+## 2026-11-14 — Canlı şema geçmişiyle çakışan Flyway V4'ün düzeltilmesi
+
+Kullanıcının paylaştığı başlangıç logu V4 checksum uyuşmazlığı gösterdi. Mevcut PostgreSQL 16.13 salt okunur sorgulanınca V4/V5'in eski yerel repository/branch ayarlarına ait olduğu, kaynakta ise V4 numarasının GitHub bağlantı tablosu için yeniden kullanıldığı görüldü. Önceki temiz test DB'leri bu eski şema geçmişini yakalamamıştı.
+
+Orijinal V4, durmuş OpsBridge container jar'ından; V5, repository'deki Git nesnesinden geri kazanıldı. İkisinin checksum'ı DB ile birebir doğrulandı. GitHub migration'ı V6'ya taşındı; eski history kayıtları değiştirilmedi ve `repair`/validation kapatma kullanılmadı. Legacy kolonların korunması, yerel Git özelliğinin yeniden uygulandığı anlamına gelmez.
+
+98 backend testi geçti. PostgreSQL'deki geçici şemalarda temiz kurulum ve V5→V6 geçişi/veri korunması doğrulandı; şemalar kaldırıldı. Mevcut DB'nin yedeği alındı, ardından gerçek uygulama 18084 üzerinde mevcut DB ile açılarak V6 uygulandı ve health UP görüldü. Proje/yetenek verileri ile V1–V5 history satırlarının önce/sonra özetleri eşleşti. Doğrulama süreci kapatıldı; kullanıcının 8082 sürecine müdahale edilmedi. Frontend, Jenkins ve referans uygulama değiştirilmedi; commit/stage yapılmadı. Yedek ve logların konumu STATUS'tadır.
+
+## 2026-11-14 — Jenkins ekranının gerçek okuma akışına bağlanması
+
+Kullanıcı önceki tasarımın kodla birleştirilmesini istedi ve `RestClient` ile Basic auth kullanan servis örneği verdi. Mevcut iki proje alanının (`jenkins_base_url_ref`, `jenkins_job_path`) zaten DB'de olduğunu, yalnızca değiştirilebilir kalmalarını istediğini netleştirdi. Son talimatında düzenlemenin genel proje ayarlarından yapılabileceğini ve bağlantı yoksa Jenkins ayrıntısına girilmeyeceğini belirtti. Önceki tasarım görevinin backend/yönlendirme yasağı yeni iş için kaldırıldı; yeni Jenkins veritabanı modeli veya build tetikleme kapsamı eklenmedi.
+
+Mevcut katman düzeninde RestClient servisi ve `/api/projects/{id}/jenkins` eklendi; genel profil düzenlemesi aynı alanları kaydetmeye devam eder. Jenkins kartı GET ile job erişimini doğrular, yalnız bağlantı başarılıysa mevcut dashboard içinde gerçek ayrıntı sayfasını açar. Son/seçili build, aşamalar, son tamamlanmış çalışmalar, commit/değişiklik ve yayımlanmış test raporu görünür. Eksik stage/rapor bilinmiyor olarak açıklanır; başarısız build ile bağlantı hatası ayrılır. Ortak token yalnız yapılandırılmış güvenilir adreslere gönderilir ve istemciye dönmez. İlk örnek tasarım ayrı önizlemede korunur.
+
+Maven verify H2 üzerinde **97 test**, frontend **39 test**, biçim ve build kontrolü geçti. Gerçek Spring Boot/RestClient, geçici H2 ve yerel Jenkins HTTP fixture'ıyla Chrome'da giriş, genel formdan yanlış URL/job düzeltme, bağlantıya göre geçiş, build seçimi, raporsuz/bağlantısız/boş durumlar ve 320–1440 px görünüm doğrulandı. Fixture 22 GET aldı; Jenkins mutation yapılmadı. QA servisleri kapatıldı. Gerçek Jenkins tokenı/sunucusu, PostgreSQL suite'i ve üretim Docker deployment bu turda doğrulanmadı; kaynak referans uygulamaya veya Jenkins kurulumuna müdahale edilmedi. Yeni migration/DB şeması, commit/push yoktur. Ayrıntı ve devam sınırları STATUS/JENKINS_VISIBILITY belgesindedir.
+
+## 2026-11-14 — Yalnızca tasarım kapsamında Jenkins ayrıntı sayfası
+
+Kullanıcı, `Jenkins özellikleri.md` belgesindeki özellikleri ileride projeye eklemeyi düşündüğünü belirtti ve projelerden açılacak Jenkins ayrıntı ekranının tasarımını istedi. Bu tur için backend, mevcut kodların düzenlenmesi ve tıklama/yönlendirme akışı açıkça kapsam dışındadır. Jenkinsfile veya gerçek Jenkins bağlantısı eklenmedi.
+
+Mevcut görsel dile uygun bağımsız `JenkinsDetailsPage.jsx`, kendi CSS'i ve önizleme için iki yeni giriş dosyası eklendi. Son/önceki tamamlanmış build ayrımı, pipeline aşamaları, başarısız aşama/konsol, son 10 build, branch/build commit ayrımı, test raporu ve veri zamanı tasarlandı. Yedi örnek durum menüden seçilebilir; rapor yokken sıfır hata sonucu çıkarılmaz, erişim sorunu build başarısızlığı olarak gösterilmez. Filtre, build seçimi ve örnek bağlantı pencereleri yalnızca tarayıcı içindedir. Router ve backend bağlantısı yapılmadı.
+
+25 frontend testi, biçim kontrolü, mevcut uygulamanın build'i ve bağımsız önizleme build'i geçti. Playwright/Chrome ile yedi durumun dokuz genişlikte toplam 63 kontrolü ve yerel etkileşimleri doğrulandı; JavaScript hatası veya sayfa taşması kalmadı. Önizleme sırasında uygulamadan API/dış kaynak isteği çıkmadı; host güvenlik yazılımının tarayıcıya eklediği istekler ayrıca ayırt edildi. Önizleme adresi ve devam sınırları STATUS'tadır. Çalışma alanında eşzamanlı başka değişiklikler gözlendi ve korundu. Bu görevde mevcut uygulama kaynaklarına yazılmadı; backend testi, canlı Jenkins/Docker değişikliği veya commit/push yapılmadı. Tasarımın kullanıcı tarafından incelenmesi sonraki adımdır; entegrasyon henüz yetkilendirilmiş değildir.
+
+## 2026-11-14 — Kayıtlı GitHub hesap/token bağlantılarının uygulanması
+
+Kullanıcı önce proje bazında tokenların ayrılmasını sordu; ardından proje eklemede kayıtlı hesaplardan bağlantı seçimi veya yeni token ekleme akışını istedi. Plan görüşmesinde GitHub bağlantıları kapsamını, açık depolarda tokensız erişimi ve aynı formda bağlantı ekleme/yenileme/silme işlemlerini seçti. "Uygula" talimatıyla plan onaylandı. Yerel Git ve çalışan sürüm eşlemesi bu işin dışında, sonraya bırakıldı.
+
+V4 migration'ı şifreli GitHub bağlantı tablosunu ve nullable proje referansını ekledi. Mevcut katman düzeninde bağlantı CRUD API'si, GitHub `/user` ile hesap doğrulama, aynı hesapta token yenileme ve kullanılan bağlantıyı silme engeli eklendi. Git servisi projenin seçtiği tokenı kullanır; seçilmiş token başarısızsa anonim erişime düşmez. Yeni/bağlantısı değişen projelerde branch okuma izni doğrulanır; ilgisiz profil güncellemeleri dış istek yapmaz. Spring Security'nin mevcut AES-GCM desteği kullanıldı; yeni bağımlılık veya genel adapter/framework eklenmedi. Ortak `GITHUB_TOKEN` ayarı kaldırıldı. Yerel `.env` içine rastgele şifreleme anahtarı, diğer değerler korunarak eklendi; anahtar değeri hafızaya/loglara yazılmadı.
+
+React formu GitHub bağlantısı ve proje bilgileri olarak iki adıma ayrıldı. Bağlantılar hesap adı + bağlantı adıyla gösterilir; yeni kayıtta otomatik hesap seçilmez. Yeni token password alanında alınır, bağlantı kaydından sonra alandan temizlenir. Tokenlar proje isteğine veya liste yanıtlarına eklenmez. README, Git görünürlüğü, geliştirme/mimari rehberleri ve roadmap güncellendi.
+
+`mvn verify` H2 ve ayrı geçici PostgreSQL 16 üzerinde **55 test, 0 hata/başarısızlık** ile geçti; jar üretildi. V3→V4 ileri migration ve foreign key koruması ayrıca H2 üzerinde sınandı. Frontend **25 test**, Prettier, üretim build'i ve Compose config kontrolü geçti. Mevcut Playwright kurulumu/gerçek Chrome ile ayrı QA backend ve PostgreSQL üzerinde giriş, iki adımlı tokensız proje kaydı, hatalı tokenın GitHub'a gitmeden 400 ile reddi, form verilerinin korunması, 390px görünüm ve test projesinin silinmesi doğrulandı; JavaScript hatası yok. Tarayıcı kontrolünde branch geçmişi fixture ile verildi; gerçek token/özel depo doğrulaması yapılmadı. Test sonunda QA süreçleri kapatıldı, geçici container kaldırıldı ve 18082/15174 portlarının kapalı olduğu doğrulandı. Üretimdeki Compose, Personal_Task_App ve Jenkins değiştirilmedi; commit/push yapılmadı. Güncel devam sınırları STATUS'tadır.
+
+## 2026-11-13 — Öğrenilen HttpClient örneğiyle GitHub okumasının uygulanması
+
+Kullanıcı, paylaştığı GitHub/build metadata yazısıyla konuyu yeni öğrendiğini, hocaya anlatabileceği sadelikte kod istediğini belirtti ve uygulamaya başlamamıza izin verdi. İlk uygulama adımı GitHub branch/commit görünümü olarak sınırlandı; önceki yerel depo hedefi iptal edilmedi. Kaynaktaki çok servisli tasarım önerisi uygulanmadı; mevcut controller → service → response DTO akışında Java `HttpClient`, `JsonNode`, ara değişkenler ve açık döngüler kullanıldı.
+
+`/api/projects/{id}/git` ve proje detayındaki GitHub bölümü eklendi. Branch ve commit listeleri sayfalanır; SHA/mesaj/yazar/tarih ve başarılı okuma zamanı görünür. Yenilemede hata olursa eski veri temizlenir; gecikmiş iptal yanıtı gösterilmez. Token yalnızca backend yapılandırmasında tutulur; sabit GitHub API hedefine gönderilir. Geçersiz istek/proje ve GitHub erişim/limit/ağ hataları ayrılır; GitHub 401 yanıtı panel oturumunu sonlandırmaz. Yeni bağımlılık, adapter/factory veya DB migration eklenmedi.
+
+Nihai Maven verify H2 üzerinde **44 testi** ve jar üretimini geçirdi. İlk denemedeki Mockito agent bağlantı sorunu yalnızca testlerde `mock-maker-subclass` ile, iç içe mock hazırlama hatası da test düzeni düzeltilerek giderildi. **18 frontend testi**, biçim kontrolü, üretim build'i, Compose config ve diff kontrolü geçti. Üç eski frontend dosyasında yalnızca satır sonları normalleştirildi; içerik değişmediği HEAD ile doğrulandı. README, Git görünürlüğü, mimari/geliştirme rehberi, roadmap ve hafıza güncellendi.
+
+Gerçek GitHub/token erişimi, tarayıcı veya Docker deployment yapılmadı; HTTP yanıtları testlerde taklit edildi. Yerel Git/gönderilmemiş commit ve çalışan Docker sürümünün build metadatası henüz bağlanmadı. Referans uygulama/Jenkins, DB şeması ve portlar değiştirilmedi. Önceden staged değişiklikler korundu; commit/push yok. Sonraki adım önerisi, kullanıcının kodu incelemesinden sonra kalan kaynakları aynı sadelikle ele almak.
+
+## 2026-11-13 — Docker çalışma düzeninin kaynaklardan doğrulanması
+
+Kullanıcı Docker'da çalışmaya yönelik mevcut kurguyu kontrol etmemizi istedi. Compose, Dockerfile'lar, Nginx/Vite proxy, backend ayarları ve Axios istemcisi incelendi. Üç servisli Docker çalıştırma yolu ile yerel backend/frontend geliştirme yolu mevcut; Docker'da kaynak mount'u/watch olmadığı için kod değişiklikleri yeniden image derlemeyi gerektiriyor. Compose yapılandırma kontrolü başarılı; kullanıcı Docker config dosyasına erişim uyarısı ve iki Engine pipe'ına bağlantı hatası nedeniyle güncel container durumu doğrulanamadı. STATUS güncellendi; uygulama veya canlı sistem değiştirilmedi, uygulama testleri/build/deployment çalıştırılmadı. Yeni mimari karar veya entegrasyon uygulaması yapılmadı.
+
+## 2026-11-11 — Kullanıcı isteğiyle integration kodunun sadeleştirilmesi
+
+Kullanıcı açıklamanın ardından bu yaklaşıma göre gereken kodun değiştirilmesini istedi. `integration/` içindeki sekiz dosya ve aynı alanları yanıt DTO'suna kopyalayan `IntegrationMapper` kaldırıldı. Durum üretimi mevcut `IntegrationServiceImpl` içinde iki metotta toplandı; yalnızca repository bağımlılığı kaldı. Controller/service arayüzü, DTO, API adresi, kart sırası, mesajlar ve pasif/yeteneği kapalı/bağlanmadı davranışı korundu. Önceki hazırlık mimarisinin yerine bugünkü ihtiyaca uygun servis akışı seçildi.
+
+Temiz Maven verify H2 üzerinde 11 test ve jar üretimiyle başarılı oldu. Mevcut API testi yalnız `BUILD_TRIGGER` yeteneği, diğer kartların kapalı kalması, üç kart için pasiflik ve silinen projede 404 kontrolleriyle genişletildi. Jar'da silinen sınıflar bulunmuyor. README, geliştirme rehberi, roadmap ve STATUS güncellendi. Frontend/DB şeması/canlı servis değişikliği, frontend test/build, PostgreSQL suite'i, tarayıcı veya Docker deployment yapılmadı; commit/push yok. Gerçek entegrasyonlar ve Git görünürlüğü açık kaldı.
+
+## 2026-11-11 — Integration yapısının sorgulanması ve öğrenme önceliği
+
+Kullanıcı `integration/` paketinin referans kodda bulunmadığını belirterek amacını sordu; önerdiği kaynak/taktiklerden hareketle çok sayıda sınıf oluşturulmasının öğrenmesini kısıtlı okul zamanında zorlaştırdığını açıkladı. 7 Kasım'daki biçim uyarlamasının tek başına bu ihtiyacı karşılamadığı kaydedildi: dosya sayısı ve işlemin takip edilebilirliği de okunabilirliğin parçası.
+
+Kaynak incelemesinde sekiz integration dosyasının henüz dış istek yapmadığı, yalnızca profil durumları ürettiği görüldü. Gelecekte gerçek bağlantıları ayırmak için kurulan bu yapının mevcut işlev için fazla parçalı olduğu Codex değerlendirmesidir. Mevcut serviste sadeleştirme önerisi uygulama kararı sayılmadı. AGENTS/CONTEXT/STATUS güncellendi; uygulama kodu ve canlı sistemler değiştirilmedi, test/build/deployment çalıştırılmadı.
+
 ## 2026-11-07 — Karşılaştırmanın kabulü ve durum kayıtlarının güncellenmesi
 
 Kullanıcı önceki açıklamayı okuduğunu, çakışan bir durum görmediğini ve mevcut durumu güncelleyebileceğimizi belirtti. Karşılaştırmanın genel uyumu, aynı sunucu/ayrı uygulama modeli ve açıklanan sınırlarla kaydedildi. “İki uygulama” ifadesi servis grupları olarak korundu; proje adı, container sayısı veya uzak sunucu kapsamı değiştirilmedi. Mimariye bileşen görevleri ile hedef CI/CD akışı eklendi; kaynakta gözlenen pipeline ile canlı doğrulanmamış tetikleme/deployment ayrıldı. Roadmap'in güncel özeti ve test sayıları 7 Kasım refaktörüne göre düzeltildi; 5 Kasım Docker/tarayıcı kanıtı tarihsel olarak korundu. CONTEXT/STATUS ve bu tarihçe güncellendi. Sıradaki özellik işi yerel sunucu deposu + GitHub commit/branch görünürlüğü olarak kaldı. Uygulama/canlı sistem değişikliği, yeni test/build/deployment veya commit/push yapılmadı.
