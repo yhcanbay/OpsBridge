@@ -2,6 +2,16 @@
 
 Son güncelleme: **2026-11-19 — Europe/Istanbul**
 
+## 2026-11-19 — Proje arayüzünün sadeleştirilmesi
+
+Kullanıcı ana ekranın yalnız proje adlarını göstermesini, seçilen projenin kendi sayfasına açılmasını ve commitlerin daha kompakt olmasını istedi. Düzenleme için bütün alanların tek kaydırılabilir pencerede bulunmasını seçti.
+
+`/projects` proje adlarını, aramayı, yenilemeyi ve yeni proje işlemini gösterir. `/projects/:projectId` mevcut API’den seçilen profili yükler. Detay sayfasında bağlantılar, GitHub geçmişi, profil ayarları ve listeye dönüş bulunur. Ekleme sonrası yeni profil açılır, kaydedilen düzenleme aynı ekrana yansır ve silme sonrası listeye dönülür. [Proje listesi](../frontend/src/pages/ProjectsPage.jsx), [proje detayı](../frontend/src/pages/ProjectDetailsPage.jsx)
+
+Profil formunun genel bilgiler, GitHub bağlantısı, izleme ayarları ve yetenekler grupları aynı pencerededir. Kaydetme düğmesi form kaydırılırken erişilebilir kalır, alan hataları ilgili girişe odaklanır. Commit satırları özet, kısa SHA, yazar ve tarihi gösterir. Satır açılınca tam mesaj ve SHA görünür. [Proje formu](../frontend/src/components/projects/ProjectForm.jsx), [GitHub geçmişi](../frontend/src/components/projects/GitHistory.jsx)
+
+52 frontend testi, biçim kontrolü, üretim derlemesi ve `git diff --check` geçti. Yerel Chrome’da 1440, 390 ve 320 piksel genişliklerde simüle API yanıtlarıyla liste ve doğrudan detay adresi, form ve klavye odağı, commit açma ve uzun içerik kontrol edildi. Ekleme, düzenleme ve silme akışları da simüle yanıtlarla denendi. Görseller Git dışında `.cache/project-ui-smoke/` altında. Backend testi ve dağıtım çalıştırılmadı.
+
 ## 2026-11-19 — HTTP Health kartının Actuator bağlantısı
 
 Kullanıcı, React’in Actuator sağlık yanıtını proje detayındaki mevcut HTTP Health kartına yazdırmasını istedi. Actuator bağımlılığı ve ayarını önceden eklediğini belirtti.

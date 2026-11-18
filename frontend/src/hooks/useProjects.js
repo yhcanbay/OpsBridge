@@ -21,10 +21,11 @@ export function useProjects() {
 
         try {
             const projectList = await projectService.getAllProjects({ signal: controller.signal })
-            const sortedProjects = sortProjects(projectList)
-            setProjects(sortedProjects)
+            if (!controller.signal.aborted) {
+                setProjects(sortProjects(projectList))
+            }
         } catch (failure) {
-            if (!isRequestCancelled(failure)) {
+            if (!controller.signal.aborted && !isRequestCancelled(failure)) {
                 setError(failure.message)
             }
         } finally {
@@ -42,38 +43,5 @@ export function useProjects() {
         }
     }, [reload])
 
-    async function saveProject(projectId, request) {
-        let savedProject
-
-        if (projectId) {
-            savedProject = await projectService.updateProject(projectId, request)
-        } else {
-            savedProject = await projectService.saveProject(request)
-        }
-
-        activeRequest.current?.abort()
-        setIsLoading(false)
-        setError('')
-        setProjects((currentProjects) => {
-            const remainingProjects = currentProjects.filter(
-                (project) => project.id !== savedProject.id
-            )
-            const updatedProjects = [...remainingProjects, savedProject]
-            return sortProjects(updatedProjects)
-        })
-
-        return savedProject
-    }
-
-    async function deleteProject(projectId) {
-        await projectService.deleteProject(projectId)
-        activeRequest.current?.abort()
-        setIsLoading(false)
-        setProjects((currentProjects) => {
-            const remainingProjects = currentProjects.filter((project) => project.id !== projectId)
-            return remainingProjects
-        })
-    }
-
-    return { projects, isLoading, error, reload, saveProject, deleteProject }
+    return { projects, isLoading, error, reload }
 }

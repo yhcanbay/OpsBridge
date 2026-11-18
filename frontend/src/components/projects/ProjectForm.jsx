@@ -8,7 +8,6 @@ function ProjectForm({ project, onSave, onClose }) {
     const [error, setError] = useState('')
     const [fieldErrors, setFieldErrors] = useState({})
     const [isSaving, setIsSaving] = useState(false)
-    const [step, setStep] = useState(1)
     const [isConnectionBusy, setIsConnectionBusy] = useState(false)
     const [isEditingConnection, setIsEditingConnection] = useState(false)
     const savePending = useRef(false)
@@ -16,11 +15,21 @@ function ProjectForm({ project, onSave, onClose }) {
 
     useEffect(() => {
         const element = dialog.current
+        const opener = document.activeElement
         element.showModal()
         return () => {
             element.close()
+            if (opener instanceof HTMLElement && opener.isConnected) {
+                opener.focus({ preventScroll: true })
+            }
         }
     }, [])
+
+    useEffect(() => {
+        if (!isSaving && Object.keys(fieldErrors).length > 0) {
+            dialog.current.querySelector('[aria-invalid="true"]')?.focus()
+        }
+    }, [fieldErrors, isSaving])
 
     function handleChange(event) {
         const { name, value, type, checked } = event.target
@@ -65,11 +74,6 @@ function ProjectForm({ project, onSave, onClose }) {
         if (savePending.current || isConnectionBusy || isEditingConnection) {
             return
         }
-        if (step === 1) {
-            setStep(2)
-            return
-        }
-
         savePending.current = true
         setIsSaving(true)
         setError('')
@@ -102,15 +106,6 @@ function ProjectForm({ project, onSave, onClose }) {
         setValues((currentValues) => ({ ...currentValues, githubConnectionId: connectionId }))
     }
 
-    function handleNextStep() {
-        setStep(2)
-    }
-
-    function handlePreviousStep() {
-        setStep(1)
-        setError('')
-    }
-
     return (
         <dialog
             ref={dialog}
@@ -121,7 +116,6 @@ function ProjectForm({ project, onSave, onClose }) {
             <form onSubmit={handleSubmit}>
                 <header className="dialog-header">
                     <div>
-                        <p className="eyebrow">PROJE PROFİLİ</p>
                         <h2 id="form-title">{project ? 'Profili düzenle' : 'Yeni proje ekle'}</h2>
                     </div>
                     <button
@@ -135,27 +129,13 @@ function ProjectForm({ project, onSave, onClose }) {
                     </button>
                 </header>
                 <div className="dialog-content">
-                    <p className="form-step" role="status">
-                        {step === 1 ? '1 / 2 · GitHub bağlantısı' : '2 / 2 · Proje bilgileri'}
-                    </p>
-                    <div hidden={step !== 1}>
-                        <GitHubConnectionSelector
-                            connectionId={values.githubConnectionId}
-                            onChange={handleConnectionChange}
-                            onBusyChange={setIsConnectionBusy}
-                            onEditingChange={setIsEditingConnection}
-                            disabled={step !== 1 || isSaving}
-                        />
-                    </div>
-                    <fieldset
-                        className="project-fields"
-                        hidden={step !== 2}
-                        disabled={step !== 2 || isSaving}
-                    >
-                        <p className="muted">
-                            Bir profil, projenin nerede olduğunu ve hangi bağlantıları
-                            desteklediğini tanımlar.
+                    {error && (
+                        <p className="notice error" role="alert">
+                            {error}
                         </p>
+                    )}
+                    <fieldset className="project-fields" disabled={isSaving}>
+                        <h3>Proje bilgileri</h3>
                         <div className="form-grid">
                             <label className="field">
                                 <span>
@@ -169,7 +149,7 @@ function ProjectForm({ project, onSave, onClose }) {
                                     maxLength={80}
                                     placeholder="Örn. Personal_Task_App"
                                     aria-invalid={Boolean(fieldErrors.name)}
-                                    aria-describedby="name-hint"
+                                    aria-describedby={fieldErrors.name ? 'name-hint' : undefined}
                                 />
                                 {fieldErrors.name && (
                                     <small
@@ -190,7 +170,7 @@ function ProjectForm({ project, onSave, onClose }) {
                                     onChange={handleChange}
                                     required
                                     maxLength={30}
-                                    pattern="[a-z][a-z0-9_-]{0,29}"
+                                    pattern={'[a-z][a-z0-9_\\-]{0,29}'}
                                     aria-invalid={Boolean(fieldErrors.environment)}
                                     aria-describedby="environment-hint"
                                 />
@@ -215,7 +195,11 @@ function ProjectForm({ project, onSave, onClose }) {
                                         maxLength={500}
                                         placeholder="https://github.com/…"
                                         aria-invalid={Boolean(fieldErrors.repositoryUrl)}
-                                        aria-describedby="repositoryUrl-hint"
+                                        aria-describedby={
+                                            fieldErrors.repositoryUrl
+                                                ? 'repositoryUrl-hint'
+                                                : undefined
+                                        }
                                     />
                                     {fieldErrors.repositoryUrl && (
                                         <small
@@ -230,8 +214,16 @@ function ProjectForm({ project, onSave, onClose }) {
                                 </label>
                             </div>
                         </div>
-                        <h3>
-                            Bağlantı bilgileri <span className="muted optional">İsteğe bağlı</span>
+                        <GitHubConnectionSelector
+                            connectionId={values.githubConnectionId}
+                            onChange={handleConnectionChange}
+                            onBusyChange={setIsConnectionBusy}
+                            onEditingChange={setIsEditingConnection}
+                            fieldError={fieldErrors.githubConnectionId}
+                            disabled={isSaving}
+                        />
+                        <h3 className="form-section-heading">
+                            İzleme ayarları <span className="muted optional">İsteğe bağlı</span>
                         </h3>
                         <div className="form-grid">
                             <label className="field">
@@ -312,7 +304,9 @@ function ProjectForm({ project, onSave, onClose }) {
                                         maxLength={500}
                                         placeholder="http://localhost:8080/actuator/health"
                                         aria-invalid={Boolean(fieldErrors.healthUrl)}
-                                        aria-describedby="healthUrl-hint"
+                                        aria-describedby={
+                                            fieldErrors.healthUrl ? 'healthUrl-hint' : undefined
+                                        }
                                     />
                                     {fieldErrors.healthUrl && (
                                         <small
@@ -327,12 +321,8 @@ function ProjectForm({ project, onSave, onClose }) {
                                 </label>
                             </div>
                         </div>
-                        <fieldset>
-                            <legend>Desteklenen yetenekler</legend>
-                            <p className="muted small">
-                                Yetenek seçimi, bağlantının çalıştığını göstermez. Jenkins
-                                bağlantısı profil kaydedildikten sonra kontrol edilir.
-                            </p>
+                        <fieldset className="profile-capabilities">
+                            <legend>Yetenekler ve aktiflik</legend>
                             <div className="capability-options">
                                 {Object.entries(CAPABILITY_LABELS).map(([key, label]) => (
                                     <label className="check-label" key={key}>
@@ -346,22 +336,17 @@ function ProjectForm({ project, onSave, onClose }) {
                                     </label>
                                 ))}
                             </div>
+                            <label className="check-label enabled-check">
+                                <input
+                                    type="checkbox"
+                                    name="enabled"
+                                    checked={values.enabled}
+                                    onChange={handleChange}
+                                />
+                                Proje aktif
+                            </label>
                         </fieldset>
-                        <label className="check-label enabled-check">
-                            <input
-                                type="checkbox"
-                                name="enabled"
-                                checked={values.enabled}
-                                onChange={handleChange}
-                            />
-                            Proje aktif
-                        </label>
                     </fieldset>
-                    {error && (
-                        <p className="notice error" role="alert">
-                            {error}
-                        </p>
-                    )}
                 </div>
                 <footer className="dialog-footer">
                     <button
@@ -372,30 +357,13 @@ function ProjectForm({ project, onSave, onClose }) {
                     >
                         Vazgeç
                     </button>
-                    {step === 1 ? (
-                        <button
-                            type="button"
-                            className="button primary"
-                            disabled={isBusy || isEditingConnection}
-                            onClick={handleNextStep}
-                        >
-                            Devam et
-                        </button>
-                    ) : (
-                        <>
-                            <button
-                                type="button"
-                                className="button secondary"
-                                disabled={isBusy}
-                                onClick={handlePreviousStep}
-                            >
-                                GitHub bağlantısına dön
-                            </button>
-                            <button className="button primary" disabled={isBusy}>
-                                {isSaving ? 'Kaydediliyor…' : 'Profili kaydet'}
-                            </button>
-                        </>
-                    )}
+                    <button
+                        type="submit"
+                        className="button primary"
+                        disabled={isBusy || isEditingConnection}
+                    >
+                        {isSaving ? 'Kaydediliyor…' : 'Profili kaydet'}
+                    </button>
                 </footer>
             </form>
         </dialog>

@@ -7,6 +7,7 @@ function GitHubConnectionSelector({
     onChange,
     onBusyChange,
     onEditingChange,
+    fieldError,
     disabled
 }) {
     const [connections, setConnections] = useState([])
@@ -213,6 +214,8 @@ function GitHubConnectionSelector({
                         value={connectionId ?? ''}
                         onChange={handleSelectionChange}
                         disabled={isLoading || mode !== 'list'}
+                        aria-invalid={Boolean(fieldError)}
+                        aria-describedby={fieldError ? 'github-connection-error' : undefined}
                     >
                         <option value="">Tokensız devam et (açık depolar)</option>
                         {connectionId && !selectedConnection && (
@@ -226,6 +229,11 @@ function GitHubConnectionSelector({
                             </option>
                         ))}
                     </select>
+                    {fieldError && (
+                        <small className="field-error" id="github-connection-error">
+                            {fieldError}
+                        </small>
+                    )}
                 </label>
                 {!isLoading && connections.length === 0 && !error && (
                     <p>Kayıtlı GitHub bağlantısı yok.</p>

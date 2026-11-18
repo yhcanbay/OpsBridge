@@ -24,10 +24,9 @@ function IntegrationCards({ project }) {
 
     return (
         <div className="integration-grid">
-            {items.map((item, index) => (
+            {items.map((item) => (
                 <article className="integration-card" key={item.integration}>
-                    <span className="integration-number">0{index + 1}</span>
-                    <h4>{item.integration}</h4>
+                    <h3>{item.integration}</h3>
                     {item.integration === 'HTTP Health' && item.state === 'NOT_CONNECTED' ? (
                         <HttpHealthStatus />
                     ) : (

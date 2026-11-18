@@ -12,9 +12,13 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
             <header className="detail-header">
                 <div>
                     <div className="project-kicker">
-                        PROJE DETAYI <span className="environment">{project.environment}</span>
+                        <span className="environment">{project.environment}</span>
+                        <span className={project.enabled ? 'status enabled' : 'status neutral'}>
+                            <span className="status-dot" />
+                            {project.enabled ? 'Aktif profil' : 'Pasif profil'}
+                        </span>
                     </div>
-                    <h2 id="project-name">{project.name}</h2>
+                    <h1 id="project-name">{project.name}</h1>
                     <a
                         className="repository-link"
                         href={project.repositoryUrl}
@@ -24,16 +28,13 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
                         {project.repositoryUrl} ↗
                     </a>
                 </div>
-                <button className="button secondary" onClick={onEdit}>
+                <button className="button secondary" onClick={onEdit} disabled={deleting}>
                     Profili düzenle
                 </button>
             </header>
             <div className="detail-section">
                 <div className="section-heading">
-                    <h3>Bağlantılar</h3>
-                    <span className="small muted">
-                        Jenkins bağlantısı profil ayarlarıyla kontrol edilir.
-                    </span>
+                    <h2>Bağlantılar</h2>
                 </div>
                 <IntegrationCards key={project.id} project={project} />
             </div>
@@ -41,12 +42,12 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
                 <GitHistory key={`${project.id}:${project.updatedAt}`} projectId={project.id} />
             ) : (
                 <div className="detail-section">
-                    <h3>GitHub geçmişi</h3>
+                    <h2>GitHub geçmişi</h2>
                     <p className="muted">Proje pasif. GitHub geçmişi okunmuyor.</p>
                 </div>
             )}
             <div className="detail-section profile-section">
-                <h3>Profil yapılandırması</h3>
+                <h2>Profil yapılandırması</h2>
                 <dl className="profile-values">
                     <div>
                         <dt>Jenkins URL / referansı</dt>
@@ -69,7 +70,7 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
                         </dd>
                     </div>
                 </dl>
-                <h4 className="capabilities-heading">Desteklenen yetenekler</h4>
+                <h3 className="capabilities-heading">Desteklenen yetenekler</h3>
                 <div className="tags">
                     {selectedCapabilities.map(([capability, label]) => (
                         <span className="tag" key={capability}>
@@ -86,7 +87,7 @@ function ProjectDetails({ project, onEdit, onDelete, deleting }) {
                     Son profil güncellemesi · {new Date(project.updatedAt).toLocaleString('tr-TR')}
                 </span>
                 <button className="text-button danger" onClick={onDelete} disabled={deleting}>
-                    {deleting ? 'Siliniyor…' : 'Projeyi sil'}
+                    {deleting ? 'Siliniyor…' : 'Profili sil'}
                 </button>
             </footer>
         </section>

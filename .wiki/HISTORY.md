@@ -2,6 +2,10 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-19 — Proje listesi ve detay arayüzü ayrıldı
+
+Kullanıcı planı onayladı ve profil düzenlemesi için tek pencereyi seçti. Ana ekran proje adlarına indirildi, proje detayları ayrı sayfaya taşındı ve GitHub geçmişi açılabilir commit satırlarıyla sıkılaştırıldı. Otomatik test ve Chrome doğrulama sonuçları [STATUS](STATUS.md#2026-11-19--proje-arayüzünün-sadeleştirilmesi) kaydında.
+
 ## 2026-11-19 — HTTP Health kartı OpsBridge sağlık yanıtını gösteriyor
 
 Kullanıcı mevcut proje kartında Actuator yanıtını görmek istedi. React mevcut proxy üzerinden OpsBridge’in `GET /actuator/health` yanıtını okuyor ve kartta HTTP kodunu ve sağlık durumunu gösteriyor. Ayrıntılar ve doğrulama [STATUS](STATUS.md#2026-11-19--http-health-kartının-actuator-bağlantısı) kaydında.

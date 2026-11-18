@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { useGitHistory } from '../../hooks/useGitHistory.js'
 
+const commitDateFormatter = new Intl.DateTimeFormat('tr-TR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Europe/Istanbul'
+})
+
 function GitHistory({ projectId }) {
     const [query, setQuery] = useState({ branch: '', page: 1, branchPage: 1 })
     const { history, isLoading, error } = useGitHistory(projectId, query)
@@ -24,15 +30,11 @@ function GitHistory({ projectId }) {
     return (
         <section className="detail-section git-history" aria-labelledby="git-history-title">
             <div className="section-heading">
-                <h3 id="git-history-title">GitHub geçmişi</h3>
+                <h2 id="git-history-title">GitHub geçmişi</h2>
                 <button className="button secondary" onClick={handleRefresh} disabled={isLoading}>
                     Yenile
                 </button>
             </div>
-            <p className="small muted">
-                GitHub üzerindeki branch ve commit bilgileri. Çalışan Docker sürümünün commit
-                bilgisi henüz okunmuyor.
-            </p>
             {isLoading && <p role="status">GitHub geçmişi yükleniyor…</p>}
             {error && <p role="alert">{error}</p>}
             {history && (
@@ -74,18 +76,40 @@ function GitHistory({ projectId }) {
                     </div>
                     {history.commits.length > 0 ? (
                         <ol className="git-commits" aria-label="Commit geçmişi">
-                            {history.commits.map((commit) => (
-                                <li key={commit.sha}>
-                                    <code title={commit.sha}>{commit.sha.slice(0, 7)}</code>
-                                    <p className="git-commit-message">{commit.message}</p>
-                                    <span className="small muted">
-                                        {commit.author} ·{' '}
-                                        {commit.committedAt
-                                            ? new Date(commit.committedAt).toLocaleString('tr-TR')
-                                            : 'Tarih bilinmiyor'}
-                                    </span>
-                                </li>
-                            ))}
+                            {history.commits.map((commit) => {
+                                const message = commit.message ?? ''
+                                const subject = message.trim().split(/\r?\n/, 1)[0]
+                                const commitDate = Date.parse(commit.committedAt)
+
+                                return (
+                                    <li key={commit.sha}>
+                                        <details>
+                                            <summary className="git-commit-row">
+                                                <span className="git-commit-subject">
+                                                    {subject || 'Mesaj yok'}
+                                                </span>
+                                                <span className="git-commit-meta">
+                                                    <code title={commit.sha}>
+                                                        {commit.sha.slice(0, 7)}
+                                                    </code>
+                                                    <span>{commit.author}</span>
+                                                    {Number.isFinite(commitDate) ? (
+                                                        <time dateTime={commit.committedAt}>
+                                                            {commitDateFormatter.format(commitDate)}
+                                                        </time>
+                                                    ) : (
+                                                        <span>Tarih bilinmiyor</span>
+                                                    )}
+                                                </span>
+                                            </summary>
+                                            <div className="git-commit-body">
+                                                <p>{message || 'Mesaj yok'}</p>
+                                                <code>{commit.sha}</code>
+                                            </div>
+                                        </details>
+                                    </li>
+                                )
+                            })}
                         </ol>
                     ) : (
                         <p>Bu sayfada commit bulunamadı.</p>

@@ -34,7 +34,6 @@ async function fillRequiredFields() {
     await waitFor(() =>
         expect(screen.getByRole('button', { name: 'Yeni bağlantı ekle' }).disabled).toBe(false)
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Devam et' }))
     fireEvent.change(screen.getByLabelText(/Proje adı/), { target: { value: 'Yeni proje' } })
     fireEvent.change(screen.getByLabelText(/Repository URL/), {
         target: { value: 'https://example.com/project' }
@@ -86,10 +85,11 @@ describe('proje profili formu', () => {
         }
         render(<ProjectForm project={project} onSave={onSave} onClose={vi.fn()} />)
 
-        fireEvent.click(screen.getByRole('button', { name: 'Devam et' }))
         expect(screen.getByLabelText(/Proje adı/).value).toBe('Mevcut proje')
         expect(screen.getByLabelText('Jenkins job yolu').value).toBe('')
         expect(screen.getByLabelText('Build görüntüleme').checked).toBe(true)
+        expect(screen.getByLabelText('Kayıtlı GitHub bağlantıları')).toBeTruthy()
+        expect(screen.queryByRole('button', { name: 'Devam et' })).toBeNull()
         fireEvent.change(screen.getByLabelText(/Proje adı/), { target: { value: 'Yeni ad' } })
         fireEvent.change(screen.getByLabelText('Jenkins URL / referansı'), {
             target: { value: 'http://localhost:8081/jenkins' }
@@ -109,6 +109,19 @@ describe('proje profili formu', () => {
         expect(request).not.toHaveProperty('id')
         expect(request).not.toHaveProperty('createdAt')
         expect(request).not.toHaveProperty('updatedAt')
+    })
+
+    it('GitHub bağlantısı düzenlenirken profil gönderimini bekletir', async () => {
+        const onSave = vi.fn()
+        render(<ProjectForm onSave={onSave} onClose={vi.fn()} />)
+        await fillRequiredFields()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Yeni bağlantı ekle' }))
+
+        expect(screen.getByLabelText(/Proje adı/).value).toBe('Yeni proje')
+        expect(screen.getByRole('button', { name: 'Profili kaydet' }).disabled).toBe(true)
+        fireEvent.submit(screen.getByRole('dialog').querySelector('form'))
+        expect(onSave).not.toHaveBeenCalled()
     })
 
     it('sunucunun alan hatasını gösterir ve girilen veriyi koruyarak yeniden denemeye izin verir', async () => {

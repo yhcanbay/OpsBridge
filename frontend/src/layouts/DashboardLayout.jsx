@@ -1,12 +1,17 @@
-import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 
 function DashboardLayout() {
     const { user, logout } = useAuth()
     const navigate = useNavigate()
+    const { pathname } = useLocation()
     const [isLoggingOut, setIsLoggingOut] = useState(false)
     const [error, setError] = useState('')
+
+    useEffect(() => {
+        document.scrollingElement?.scrollTo(0, 0)
+    }, [pathname])
 
     async function handleLogout() {
         setIsLoggingOut(true)
@@ -38,15 +43,6 @@ function DashboardLayout() {
                 >
                     <span aria-hidden="true">▦</span> Projeler
                 </NavLink>
-                <div className="sidebar-note">
-                    <span className="note-mark" aria-hidden="true">
-                        ↗
-                    </span>
-                    <strong>Önce sağlam bir temel.</strong>
-                    <p>
-                        Proje profillerini hazırlayın; operasyon bağlantılarını adım adım ekleyin.
-                    </p>
-                </div>
                 <div className="account">
                     <span className="avatar">{user.username.slice(0, 1).toUpperCase()}</span>
                     <div>

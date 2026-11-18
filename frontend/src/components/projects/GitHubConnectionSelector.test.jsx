@@ -47,18 +47,15 @@ function fillProjectFields() {
 }
 
 describe('GitHub bağlantılı proje formu', () => {
-    it('bağlantıyı otomatik seçmez, seçimi gönderir ve adımlar arasında bilgileri korur', async () => {
+    it('bağlantıyı otomatik seçmez ve proje bilgileriyle birlikte seçimi gönderir', async () => {
         const onSave = vi.fn().mockResolvedValue({})
         render(<ProjectForm onSave={onSave} onClose={vi.fn()} />)
         await waitForConnections()
         const select = screen.getByLabelText('Kayıtlı GitHub bağlantıları')
         expect(select.value).toBe('')
-        fireEvent.change(select, { target: { value: savedConnection.id } })
-        fireEvent.click(screen.getByRole('button', { name: 'Devam et' }))
         fillProjectFields()
-        fireEvent.click(screen.getByRole('button', { name: 'GitHub bağlantısına dön' }))
+        fireEvent.change(select, { target: { value: savedConnection.id } })
         expect(select.value).toBe(savedConnection.id)
-        fireEvent.click(screen.getByRole('button', { name: 'Devam et' }))
         expect(screen.getByLabelText(/Proje adı/).value).toBe('Test proje')
         fireEvent.click(screen.getByRole('button', { name: 'Profili kaydet' }))
         await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1))
@@ -75,7 +72,7 @@ describe('GitHub bağlantılı proje formu', () => {
         render(<ProjectForm onSave={vi.fn()} onClose={vi.fn()} />)
         await waitForConnections()
         fireEvent.click(screen.getByRole('button', { name: 'Yeni bağlantı ekle' }))
-        expect(screen.getByRole('button', { name: 'Devam et' }).disabled).toBe(true)
+        expect(screen.getByRole('button', { name: 'Profili kaydet' }).disabled).toBe(true)
         fireEvent.change(screen.getByLabelText('Bağlantı adı'), {
             target: { value: 'Yeni bağlantı' }
         })
@@ -117,7 +114,7 @@ describe('GitHub bağlantılı proje formu', () => {
         )
         expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('bütün projeler'))
         expect(screen.getByLabelText('Kayıtlı GitHub bağlantıları').value).toBe(savedConnection.id)
-        expect(screen.getByRole('button', { name: 'Devam et' }).disabled).toBe(true)
+        expect(screen.getByRole('button', { name: 'Profili kaydet' }).disabled).toBe(true)
         fireEvent.click(screen.getByRole('button', { name: 'Düzenlemeyi iptal et' }))
         fireEvent.click(screen.getByRole('button', { name: 'Bağlantıyı düzenle' }))
         expect(screen.getByLabelText('Yeni GitHub tokenı').value).toBe('')
@@ -172,7 +169,7 @@ describe('GitHub bağlantılı proje formu', () => {
         expect(onClose).not.toHaveBeenCalled()
         expect(screen.getByRole('button', { name: 'Formu kapat' }).disabled).toBe(true)
         await act(async () => resolveSave(savedConnection))
-        expect(screen.getByRole('button', { name: 'Devam et' }).disabled).toBe(false)
+        expect(screen.getByRole('button', { name: 'Profili kaydet' }).disabled).toBe(false)
     })
 
     it('liste yüklenemese bile tokensız devam edilebilir ve liste yeniden istenebilir', async () => {
@@ -181,7 +178,7 @@ describe('GitHub bağlantılı proje formu', () => {
             .mockResolvedValueOnce([savedConnection])
         render(<ProjectForm onSave={vi.fn()} onClose={vi.fn()} />)
         await screen.findByRole('alert')
-        expect(screen.getByRole('button', { name: 'Devam et' }).disabled).toBe(false)
+        expect(screen.getByRole('button', { name: 'Profili kaydet' }).disabled).toBe(false)
         fireEvent.click(screen.getByRole('button', { name: 'Listeyi yenile' }))
         await waitForConnections()
         expect(screen.queryByRole('alert')).toBeNull()

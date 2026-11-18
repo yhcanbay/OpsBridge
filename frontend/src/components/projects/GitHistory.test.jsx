@@ -18,7 +18,7 @@ const history = {
     commits: [
         {
             sha: '0123456789012345678901234567890123456789',
-            message: 'Git geçmişi eklendi',
+            message: 'Git geçmişi eklendi\n\nBranch sayfalaması da eklendi.',
             author: 'Example',
             committedAt: '2026-11-13T10:00:00Z'
         }
@@ -44,12 +44,24 @@ describe('GitHub geçmişi', () => {
         expect(screen.getByLabelText('Branch').value).toBe('main')
         expect(screen.getByTitle(history.commits[0].sha).textContent).toBe('0123456')
         expect(screen.getByText(/Son başarılı okuma/)).toBeTruthy()
-        expect(screen.getByText(/Çalışan Docker sürümünün commit bilgisi/)).toBeTruthy()
         expect(projectService.getGitHistory).toHaveBeenCalledWith(
             'project-1',
             { branch: '', page: 1, branchPage: 1 },
             { signal: expect.any(AbortSignal) }
         )
+    })
+
+    it('commit özetini gösterir ve satır açıldığında tam SHA ile mesajı sunar', async () => {
+        render(<GitHistory projectId="project-1" />)
+        const summary = (await screen.findByText('Git geçmişi eklendi')).closest('summary')
+        const details = summary.closest('details')
+
+        expect(details.open).toBe(false)
+        fireEvent.click(summary)
+
+        expect(details.open).toBe(true)
+        expect(screen.getByText(/Branch sayfalaması da eklendi/)).toBeTruthy()
+        expect(screen.getByText(history.commits[0].sha)).toBeTruthy()
     })
 
     it('commit sayfasını değiştirir ve branch değişince ilk sayfaya döner', async () => {

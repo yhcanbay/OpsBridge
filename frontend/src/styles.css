@@ -403,32 +403,8 @@ small {
   color: #b9d8d5;
 }
 
-.sidebar-note {
-  margin-top: auto;
-  padding: 24px 12px 28px;
-}
-
-.sidebar-note strong {
-  display: block;
-  font-size: 12px;
-  color: #cfdee3;
-}
-
-.sidebar-note p {
-  font-size: 12px;
-  line-height: 1.8;
-  color: #8ea8b5;
-  margin: 8px 0 0;
-}
-
-.note-mark {
-  display: block;
-  font-size: 25px;
-  color: #6eb4a9;
-  margin-bottom: 12px;
-}
-
 .account {
+  margin-top: auto;
   border-top: 1px solid #2b4552;
   padding-top: 20px;
   display: flex;
@@ -527,86 +503,24 @@ small {
   font-size: 13px;
 }
 
-.summary-strip {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  border: 1px solid #e0e7eb;
-  border-radius: 9px;
-  background: #fff;
-  padding: 22px 28px;
-  margin-bottom: 36px;
+.projects-page {
+  max-width: 1000px;
 }
 
-.summary-strip > div {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  color: #7a8b95;
-  font-size: 12px;
-}
-
-.summary-strip > div + div {
-  border-left: 1px solid #e6ecef;
-  padding-left: 35px;
-}
-
-.summary-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: #294553;
-  line-height: 1.2;
-  font-variant-numeric: tabular-nums;
-}
-
-.summary-strip > .summary-explainer {
-  margin-left: auto;
-  display: block;
-}
-
-.summary-explainer strong {
-  font-size: 12px;
-  font-weight: 600;
-  color: #4c6974;
-  display: block;
-  margin-bottom: 3px;
-}
-
-.summary-explainer > span {
-  font-size: 11px;
+.projects-page h1 {
+  margin: 0;
 }
 
 .projects-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 10px;
   margin-bottom: 15px;
 }
 
-.projects-toolbar h2 {
-  font-size: 16px;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.projects-toolbar h2 > span {
-  font-size: 11px;
-  background: #e6ecef;
-  color: #68808c;
-  padding: 2px 7px;
-  border-radius: 5px;
-  margin-left: 6px;
-}
-
-.projects-toolbar > div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .search-field {
-  width: 210px;
+  width: 250px;
+  min-width: 0;
 }
 
 .search-field input {
@@ -620,65 +534,39 @@ small {
 }
 
 .project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  margin-bottom: 28px;
+  margin: 0 0 28px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #dde5e9;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.project-list li + li {
+  border-top: 1px solid #e6ecef;
 }
 
 .project-row {
   display: flex;
   align-items: center;
-  gap: 18px;
-  text-align: left;
-  width: 100%;
-  border: 1px solid #dde5e9;
-  border-radius: 8px;
-  padding: 17px 23px;
-  background: white;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 7px;
   color: #334e5c;
-}
-
-.project-row.selected {
-  border-color: #6da79f;
-  background: #f8fcfb;
-  box-shadow: inset 3px 0 0 #278779;
-}
-
-.project-row:hover {
-  border-color: #7faaa4;
-}
-
-.project-avatar {
-  width: 40px;
-  height: 40px;
-  background: #e3efec;
-  color: #47786f;
-  border: 1px solid #d2e4df;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  letter-spacing: 0.5px;
-  font-weight: 700;
-}
-
-.project-title {
-  flex: 1;
-  min-width: 0;
-}
-
-.project-title strong {
-  display: block;
-  font-size: 13px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
-.project-title small {
-  font-size: 11px;
-  display: block;
-  color: #8999a3;
-  margin-top: 3px;
+.project-row:hover {
+  background: #f8fcfb;
+}
+
+.project-row:focus-visible,
+.git-commit-row:focus-visible {
+  outline: 2px solid #278779;
+  outline-offset: -2px;
 }
 
 .environment {
@@ -720,9 +608,17 @@ small {
 }
 
 .row-arrow {
-  color: #88a1aa;
-  margin-left: 10px;
-  font-size: 18px;
+  flex-shrink: 0;
+  color: #527d7d;
+}
+
+.project-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
 .project-details {
@@ -755,13 +651,14 @@ small {
   letter-spacing: 0;
 }
 
-.detail-header h2 {
-  margin-bottom: 5px;
+.detail-header h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
   overflow-wrap: anywhere;
 }
 
 .repository-link {
-  font-size: 11px;
+  font-size: 12px;
   overflow-wrap: anywhere;
   color: #66868e;
 }
@@ -785,9 +682,12 @@ small {
   gap: 12px;
 }
 
-.section-heading h3 {
-  margin: 0;
+.detail-section h2 {
   font-size: 14px;
+}
+
+.section-heading h2 {
+  margin: 0;
 }
 
 .integration-grid {
@@ -804,16 +704,7 @@ small {
   position: relative;
 }
 
-.integration-number {
-  font-family: Consolas, monospace;
-  font-size: 10px;
-  color: #a5b2ba;
-  position: absolute;
-  top: 17px;
-  right: 16px;
-}
-
-.integration-card h4 {
+.integration-card h3 {
   font-size: 13px;
   margin: 0 0 13px;
 }
@@ -829,8 +720,7 @@ small {
   font-size: 10px;
 }
 
-.profile-section > h3 {
-  font-size: 14px;
+.profile-section > h2 {
   margin-bottom: 18px;
 }
 
@@ -903,18 +793,6 @@ small {
   color: #b06a65;
 }
 
-.workspace-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 28px;
-  color: #9eabb3;
-  font-size: 10px;
-}
-
-.workspace-footer > span:first-child {
-  font-weight: 600;
-}
-
 .empty-state {
   text-align: center;
   padding: 55px 20px;
@@ -922,14 +800,6 @@ small {
   border: 1px dashed #d2dfe5;
   border-radius: 9px;
   margin: 10px 0 30px;
-}
-
-.empty-state h2 {
-  font-size: 20px;
-}
-
-.empty-state .button {
-  margin-top: 10px;
 }
 
 .empty-search {
@@ -942,8 +812,8 @@ small {
   border: 1px solid #d6e1e7;
   border-radius: 12px;
   padding: 0;
-  width: min(650px, calc(100vw - 28px));
-  max-height: 90vh;
+  width: min(760px, calc(100vw - 24px));
+  max-height: calc(100% - 24px);
   color: #304c5b;
   box-shadow: 0 20px 100px #082d3c30;
 }
@@ -953,16 +823,19 @@ small {
   backdrop-filter: blur(2px);
 }
 
+.project-dialog > form {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: calc(100vh - 28px);
+  max-height: calc(100dvh - 28px);
+}
+
 .dialog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 23px 28px;
   border-bottom: 1px solid #e5ebee;
-}
-
-.dialog-header .eyebrow {
-  margin-bottom: 5px;
 }
 
 .dialog-header h2 {
@@ -978,17 +851,14 @@ small {
 }
 
 .dialog-content {
-  padding: 23px 28px;
-}
-
-.dialog-content > .muted {
-  font-size: 12px;
-  margin-bottom: 23px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 28px;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 17px 18px;
 }
 
@@ -1024,8 +894,19 @@ small {
 }
 
 .dialog-content h3 {
-  font-size: 13px;
-  margin: 25px 0 14px;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.form-section-heading,
+.project-fields > .github-connection-selector {
+  border-top: 1px solid #e4ebee;
+  padding-top: 18px;
+}
+
+.dialog-content .form-section-heading,
+.project-fields > .github-connection-selector {
+  margin-top: 20px;
 }
 
 .optional {
@@ -1037,13 +918,19 @@ small {
 .dialog-content fieldset {
   border: 0;
   padding: 0;
-  margin: 25px 0 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.dialog-content .profile-capabilities {
+  margin-top: 22px;
 }
 
 .dialog-content legend {
+  color: #142e3e;
   font-weight: 600;
-  font-size: 13px;
-  margin-bottom: 5px;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
 .capability-options {
@@ -1067,7 +954,7 @@ small {
 }
 
 .dialog-content > .notice {
-  margin: 20px 0 0;
+  margin: 0 0 16px;
 }
 
 .dialog-footer {
@@ -1096,7 +983,6 @@ small {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 20px;
 }
 
 .git-branch-controls select {
@@ -1115,24 +1001,85 @@ small {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  margin: 20px 0;
+  gap: 8px 12px;
+  margin: 10px 0;
 }
 
 .git-commits {
   list-style: none;
-  margin: 20px 0;
+  margin: 12px 0;
   padding: 0;
+  border-top: 1px solid #dce5e9;
 }
 
 .git-commits li {
   border-bottom: 1px solid #dce5e9;
-  padding: 16px 0;
+}
+
+.git-commit-row {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) minmax(0, 245px);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  color: #294553;
+  cursor: pointer;
+  list-style: none;
+}
+
+.git-commit-row::-webkit-details-marker {
+  display: none;
+}
+
+.git-commit-row::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid #527d7d;
+  border-bottom: 1.5px solid #527d7d;
+  transform: rotate(-45deg);
+}
+
+.git-commits details[open] > .git-commit-row::before {
+  transform: rotate(45deg);
+}
+
+.git-commit-row:hover,
+.git-commits details[open] {
+  background: #f4f9f8;
+}
+
+.git-commit-subject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.git-commit-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 12px;
+  color: #566a77;
   overflow-wrap: anywhere;
 }
 
-.git-commit-message {
-  margin: 8px 0;
+.git-commit-meta code {
+  color: #276d65;
+}
+
+.git-commit-body {
+  padding: 4px 12px 12px 30px;
+  overflow-wrap: anywhere;
+}
+
+.git-commit-body p {
+  margin: 0 0 6px;
   white-space: pre-wrap;
 }
 
@@ -1160,21 +1107,8 @@ small {
   .topbar {
     padding: 0 25px;
   }
-  .summary-strip {
-    gap: 22px;
-    padding: 20px;
-  }
-  .summary-strip > div + div {
-    padding-left: 22px;
-  }
-  .summary-explainer > span {
-    display: none;
-  }
   .integration-card {
     padding: 13px;
-  }
-  .integration-number {
-    display: none;
   }
   .detail-section,
   .detail-header {
@@ -1203,11 +1137,11 @@ small {
     font-size: 20px;
   }
   .sidebar-label,
-  .sidebar-note,
   .nav-item {
     display: none;
   }
   .account {
+    margin-top: 0;
     margin-left: auto;
     border: 0;
     padding: 0;
@@ -1231,12 +1165,6 @@ small {
   .workspace-content {
     padding: 28px 20px 20px;
   }
-  .summary-strip {
-    gap: 22px;
-  }
-  .summary-strip > .summary-explainer {
-    display: none;
-  }
   .page-heading {
     gap: 16px;
   }
@@ -1248,13 +1176,6 @@ small {
   }
   .integration-grid {
     gap: 9px;
-  }
-  .project-row {
-    gap: 12px;
-    padding: 15px;
-  }
-  .project-title small {
-    display: none;
   }
 }
 
@@ -1304,56 +1225,25 @@ small {
   .page-heading .muted {
     font-size: 12px;
   }
-  .summary-strip {
-    margin-bottom: 26px;
-    padding: 17px;
+  .projects-page .page-heading {
+    align-items: center;
   }
-  .summary-value {
-    font-size: 24px;
-  }
-  .summary-strip > div {
-    font-size: 11px;
-    gap: 10px;
-  }
-  .projects-toolbar {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .projects-toolbar > div {
-    width: 100%;
+  .projects-page .page-heading .button {
+    margin-top: 0;
   }
   .search-field {
     flex: 1;
     width: auto;
   }
   .project-row {
-    gap: 10px;
-    padding: 13px 12px;
-  }
-  .project-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 10px;
-    flex-shrink: 0;
-  }
-  .project-title strong {
-    font-size: 11px;
-  }
-  .project-row > .status {
-    font-size: 9px;
-  }
-  .project-row > .environment {
-    display: none;
-  }
-  .row-arrow {
-    display: none;
+    padding: 12px;
   }
   .detail-header {
     display: block;
     padding: 20px 17px;
   }
-  .detail-header h2 {
-    font-size: 19px;
+  .detail-header h1 {
+    font-size: 22px;
   }
   .detail-header .button {
     margin-top: 16px;
@@ -1372,7 +1262,7 @@ small {
   .integration-card {
     padding: 16px;
   }
-  .integration-card h4 {
+  .integration-card h3 {
     margin-bottom: 10px;
   }
   .integration-card p {
@@ -1392,6 +1282,17 @@ small {
   .detail-footer .small {
     max-width: 180px;
   }
+  .git-commit-row {
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: 3px 8px;
+  }
+  .git-commit-meta {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+  .git-commit-body {
+    padding-left: 28px;
+  }
   .form-grid,
   .capability-options {
     grid-template-columns: 1fr;
@@ -1410,19 +1311,8 @@ small {
     font-size: 19px;
   }
 }
-.project-fields {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
-
 [hidden] {
   display: none !important;
-}
-
-.form-step {
-  font-weight: 600;
 }
 
 .connection-actions {
