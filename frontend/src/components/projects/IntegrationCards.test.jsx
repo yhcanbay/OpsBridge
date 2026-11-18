@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { httpClient } from '../../api/httpClient.js'
 import { useIntegrations } from '../../hooks/useIntegrations.js'
 import IntegrationCards from './IntegrationCards.jsx'
 
@@ -67,4 +68,58 @@ it('Docker bağlantısı hazır olduğunda projenin Docker sayfasını açar', (
     expect(screen.getByRole('link', { name: 'Docker ayrıntıları ↗' }).getAttribute('href')).toBe(
         '/projects/project-1/docker'
     )
+})
+
+describe('HTTP Health kartı', () => {
+    const originalAdapter = httpClient.defaults.adapter
+
+    afterEach(() => {
+        httpClient.defaults.adapter = originalAdapter
+    })
+
+    it.each([
+        [200, 'UP', 'Sağlıklı'],
+        [503, 'DOWN', 'Sağlıksız'],
+        [503, 'OUT_OF_SERVICE', 'Hizmet dışı']
+    ])('HTTP %i ve %s yanıtını kartta gösterir', async (httpStatus, status, label) => {
+        useIntegrations.mockReturnValue({
+            items: [{ integration: 'HTTP Health', state: 'NOT_CONNECTED' }],
+            isLoading: false,
+            error: ''
+        })
+        const adapter = vi.fn(async (config) => {
+            return { data: { status }, status: httpStatus, headers: {}, config }
+        })
+        httpClient.defaults.adapter = adapter
+
+        render(<IntegrationCards project={{ id: 'project-1' }} />)
+
+        expect(await screen.findByText(label)).toBeTruthy()
+        expect(screen.getByText(`OpsBridge backend · HTTP ${httpStatus} · ${status}`)).toBeTruthy()
+        expect(adapter).toHaveBeenCalledWith(
+            expect.objectContaining({ baseURL: '', method: 'get', url: '/actuator/health' })
+        )
+        expect(adapter.mock.calls[0][0].validateStatus(httpStatus)).toBe(true)
+        expect(screen.queryByRole('link')).toBeNull()
+    })
+
+    it('proxy hata sayfasını Actuator sağlık durumu olarak göstermez', async () => {
+        useIntegrations.mockReturnValue({
+            items: [{ integration: 'HTTP Health', state: 'NOT_CONNECTED' }],
+            isLoading: false,
+            error: ''
+        })
+        httpClient.defaults.adapter = async (config) => ({
+            data: '<html>Service Unavailable</html>',
+            status: 503,
+            headers: {},
+            config
+        })
+
+        render(<IntegrationCards project={{ id: 'project-1' }} />)
+
+        expect((await screen.findByRole('alert')).textContent).toBe(
+            'Actuator sağlık yanıtı okunamadı.'
+        )
+    })
 })

@@ -49,6 +49,25 @@ async function getIntegrationStatuses(projectId, { signal } = {}) {
     return response.data
 }
 
+async function getHttpHealth({ signal } = {}) {
+    const response = await httpClient.get('/actuator/health', {
+        baseURL: '',
+        signal,
+        // Actuator, DOWN ve OUT_OF_SERVICE durumlarını HTTP 503 ile döndürür.
+        validateStatus: () => true
+    })
+    const { data, status: httpStatus } = response
+
+    if (httpStatus !== 200 && httpStatus !== 503) {
+        throw new Error(`Sağlık kontrolü HTTP ${httpStatus} yanıtı verdi.`)
+    }
+    if (typeof data?.status !== 'string' || !data.status.trim()) {
+        throw new Error('Actuator sağlık yanıtı okunamadı.')
+    }
+
+    return { status: data.status, httpStatus }
+}
+
 async function getGitHistory(projectId, { branch, page, branchPage }, { signal } = {}) {
     const response = await httpClient.get(`/projects/${projectId}/git`, {
         params: { branch, page, branchPage },
@@ -68,5 +87,6 @@ export const projectService = {
     updateProject,
     deleteProject,
     getIntegrationStatuses,
+    getHttpHealth,
     getGitHistory
 }

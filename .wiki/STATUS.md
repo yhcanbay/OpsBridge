@@ -1,6 +1,14 @@
 # Güncel durum ve devam noktası
 
-Son güncelleme: **2026-11-18 — Europe/Istanbul**
+Son güncelleme: **2026-11-19 — Europe/Istanbul**
+
+## 2026-11-19 — HTTP Health kartının Actuator bağlantısı
+
+Kullanıcı, React’in Actuator sağlık yanıtını proje detayındaki mevcut HTTP Health kartına yazdırmasını istedi. Actuator bağımlılığı ve ayarını önceden eklediğini belirtti.
+
+HTTP Health kartı, aktif ve `HEALTH_VIEW` yetenekli profillerde `GET /actuator/health` çağırır. Vite/Nginx’in mevcut yönlendirmesi OpsBridge backend’ine gider. Kart HTTP kodunu, Actuator durumunu ve Türkçe karşılığını gösterir. `DOWN` ve `OUT_OF_SERVICE` içeren HTTP 503 yanıtları sağlık sonucu olarak okunur. Yanıt gelmezse veya Actuator biçiminde değilse kart hata gösterir. [HTTP Health kartı](../frontend/src/components/projects/HttpHealthStatus.jsx), [proje servisi](../frontend/src/services/projectService.js)
+
+Frontend 47 test, biçim kontrolü ve üretim derlemesi geçti. `mvn verify` 100 testle geçti. Vite önizlemesi, yerelde çalışan Spring backend üzerinden `GET /actuator/health` için HTTP 200 ve `UP` döndürdü. Karttaki 503 durumları ve geçersiz yanıt, simüle edilen HTTP yanıtlarıyla doğrulandı. Maven mevcut `pom.xml` içindeki yinelenen Actuator tanımı için uyardı. Tarayıcıda uçtan uca oturum testi ve dağıtım çalıştırılmadı.
 
 ## 2026-11-18 — Docker sayfasının yerel Engine okumasına bağlanması
 
@@ -224,7 +232,7 @@ Sekiz haftalık planın **1. haftasından yola çıkarak basit Spring Boot–Rea
 - [ADMIN oturumu](../backend/src/main/java/com/yhcanbay/opsbridge/config/SecurityConfig.java): environment üzerinden hesap, BCrypt doğrulama, session cookie, açık CSRF koruması. JWT araştırıldı; mevcut aynı-origin yönetim paneli için session akışı korundu, gerekçesi rehberde.
 - [Proje profili API'si](../backend/src/main/java/com/yhcanbay/opsbridge/controller/impl/ProjectControllerImpl.java): genel CRUD, UUID, alan doğrulama ve capability kümesi. Controller/service/repository/entity, request/response DTO, mapper, enum, config ve exception paketleri ayrı. Controller ve servis arayüzlerinin uygulamaları `impl/` altında. Entity DTO bilmez; controller entity döndürmez. Dönüşümler açık mapper sınıflarında.
 - [Flyway migration'ları](../backend/src/main/resources/db/migration/): PostgreSQL şeması ve bir Personal_Task_App profili. V1/V2 değiştirilmedi; yeni V3 boş ad/ortam ve tanımsız capability için CHECK kuralları ekler. Silinen örnek profil her başlangıçta tekrar eklenmez.
-- [Bağlantı durumları](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java): Jenkins job ve yerel Docker Engine erişimi ilgili servislerde sorgulanır. HTTP Health kartı profil durumundan üretilir.
+- [Bağlantı durumları](../backend/src/main/java/com/yhcanbay/opsbridge/service/impl/IntegrationServiceImpl.java): Jenkins job ve yerel Docker Engine erişimi ilgili servislerde sorgulanır. [HTTP Health kartı](../frontend/src/components/projects/HttpHealthStatus.jsx), uygun profillerde OpsBridge’in Actuator yanıtını gösterir.
 - [Compose](../compose.yaml), iki Dockerfile, Nginx/Vite API proxy, [.env.example](../.env.example), [kurulum README'si](../README.md) ve [referans uygulama envanteri](../docs/PERSONAL_TASK_APP.md).
 - [Geliştirme rehberi](../docs/DEVELOPMENT_GUIDE.md): Spring/DTO/mapper, session/JWT, React Router/Axios, PostgreSQL/JPA/Flyway tercihleri ve resmî kaynaklar. Frontend app/api/components/constants/context/hooks/layouts/pages/services olarak ayrıldı; Prettier ve `.editorconfig` kullanılıyor. Güncel yazım ölçütü 7 Kasım'dan beri [Sozluk_Uygulamasi referansı](../docs/CODING_STYLE.md); önceki AOSP biçimi zorunlu güncel standart değil.
 - [Üç beceri](../skills/): `backend-developer`, `frontend-developer`, `database-developer`. Doğrulayıcıdan geçti ve `C:\Users\yhcan\.codex\skills` altına kuruldu. Depodaki kopyalar inceleme için tutulur; iki konum otomatik senkron değil. Kök AGENTS.md kullanıcı kod tercihlerini ve bu kaynakları belirtir.
@@ -249,7 +257,7 @@ Varsayılan OpsBridge portları: arayüz **5174**, backend **8082**, DB **5433**
 - Windows Maven wrapper'ın ilk Maven indirmesi ağ/bağlantı hatası verdi. Wrapper dosyaları mevcut; başarılı testler kurulu `mvn` ile yapıldı. README bu ayrımı belirtir.
 - Yerleşik Node REPL sunulmadı; gerçek Chrome doğrulaması geçici Playwright kitaplığıyla tamamlandı. Bu kontrol Chrome ile sınırlı; farklı tarayıcı/cihazlar ve kapsamlı erişilebilirlik denetimi yapılmadı.
 - Personal_Task_App için Jenkins 8081/job/branch ve Compose proje etiketi geçmiş incelemede görüldü. Kimlik doğrulanmış Jenkins erişimi, webhook/ngrok, canlı Docker okuması ve sistemler arası erişim ortamda doğrulanmayı bekliyor.
-- HTTP Health verisi, build tetikleme, audit, ayrıntılı RBAC ve tarama/security gate açık ürün kapsamlarıdır.
+- İzlenen uygulamadan sağlık verisi, build tetikleme, audit, ayrıntılı RBAC ve tarama/security gate açık ürün kapsamlarıdır.
 - Commit, push veya haricî yayın yapılmadı.
 
 ## Önerilen devam noktası

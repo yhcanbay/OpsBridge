@@ -22,7 +22,7 @@ URL/HTTPS üzerinden yayınlama en son ele alınacak ayrı iştir. Mevcut kurulu
 - Jenkins bağlantı kontrolü ve ayrıntı ekranı; son/seçili build, aşamalar, geçmiş, commit/değişiklik ve yayımlanmış test raporu özeti.
 - Docker bağlantı kontrolü ve Compose projesine ait container’ların çalışma, sağlık, image, kapanma ve port bilgileri.
 
-**Jenkins ve Docker verisi salt okunur.** Jenkins kartı job erişimini, Docker kartı yerel Docker Engine bağlantısını kontrol eder. Bağlı kartlar ilgili ayrıntı ekranını açar. HTTP Health kartı profil durumunu gösterir. `SECURITY_VIEW` profil yetenekleri arasında tanımlanabilir.
+**Jenkins ve Docker verisi salt okunur.** Jenkins kartı job erişimini, Docker kartı yerel Docker Engine bağlantısını kontrol eder. Bağlı kartlar ilgili ayrıntı ekranını açar. HTTP Health kartı, `HEALTH_VIEW` yetenekli aktif profillerde OpsBridge backend’in `/actuator/health` yanıtını aynı ekranda gösterir. `SECURITY_VIEW` profil yetenekleri arasında tanımlanabilir.
 
 ## Klasör yapısı
 

@@ -2,6 +2,10 @@
 
 Tarihler kullanıcı saat dilimi **Europe/Istanbul** esas alınarak yazılır. Bu dosya önemli gelişmelerin özetidir; ham sohbet ve komut çıktısı arşivi değildir.
 
+## 2026-11-19 — HTTP Health kartı OpsBridge sağlık yanıtını gösteriyor
+
+Kullanıcı mevcut proje kartında Actuator yanıtını görmek istedi. React mevcut proxy üzerinden OpsBridge’in `GET /actuator/health` yanıtını okuyor ve kartta HTTP kodunu ve sağlık durumunu gösteriyor. Ayrıntılar ve doğrulama [STATUS](STATUS.md#2026-11-19--http-health-kartının-actuator-bağlantısı) kaydında.
+
 ## 2026-11-18 — Salt okunur Docker ekranı uygulandı
 
 Kullanıcı görsel tasarımdan kodlamaya geçilmesini ve paylaştığı docker-java örneğine göre anlaşılır bir akış kurulmasını istedi. Daha önce boş duran proje bazlı Docker kartına Engine bağlantı kontrolü ve ayrıntı ekranı eklendi. Liste, kullanıcının düzenleyebildiği mevcut Compose etiketiyle sınırlandı. Docker list/inspect çıktısından servis/container, çalışma ve sağlık, image, zaman/çıkış ve yayımlanan port bilgileri alındı. Geçici named pipe yanıtlarıyla Chrome’da uçtan uca akış, filtre ve hata durumları doğrulandı. Maven verify 100, frontend 43 test geçti. Personal_Task_App’in canlı Docker Engine erişimi bu ortamda doğrulanamadı. Kurulum ve devam koşulları STATUS ile README’de.
